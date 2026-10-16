@@ -1,0 +1,187 @@
+{
+	"pages": [
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "包厢点餐",
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/customer/cart",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "已选餐品",
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/customer/checkout",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "确认订单",
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/customer/payment",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "微信支付",
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/customer/success",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "支付结果",
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/customer/orders",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "我的订单",
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/customer/progress",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "订单详情",
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/customer/completed",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "已送达",
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/supplier/workbench",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "接单工作台",
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/supplier/detail",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "订单详情",
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/supplier/preparing",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "制作中",
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/supplier/delivery",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "配送中",
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/admin/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "KTV 管理",
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/admin/rooms",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "包厢管理",
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/admin/qrcode",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "包厢二维码",
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/admin/products",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "餐品管理",
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/admin/product-edit",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "编辑餐品",
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/admin/orders",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "订单管理",
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/admin/order-detail",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "订单详情",
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/admin/accounts",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "外包账号",
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/admin/permissions",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "账号权限",
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/admin/payment",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "支付与状态",
+				"disableScroll": true
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationStyle": "custom",
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "包厢点餐",
+		"backgroundColor": "#FAF9F6"
+	},
+	"uniIdRouter": {}
+}

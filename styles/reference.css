@@ -1,0 +1,2128 @@
+/* Measurements are normalized to a 390 px content width. Each artboard has
+   its own phone ratio; only the desktop review frame adopts that ratio. */
+.phone-screen {
+	--ink: #101e27;
+	--surface: #faf9f7;
+	color: var(--ink);
+	font-family:
+		"KTV UI Sans", "Noto Sans SC", "PingFang SC", "Microsoft YaHei",
+		sans-serif;
+	font-weight: 500;
+}
+/* uni-app's H5 element names are uni-view / uni-button. Native tag resets
+   alone do not reach those elements, making padding enlarge every card. */
+/* #ifdef H5 */
+.phone-screen *,
+.phone-screen *::before,
+.phone-screen *::after {
+	box-sizing: border-box;
+}
+.phone-screen uni-button {
+	line-height: 1.5;
+}
+/* #endif */
+.phone-screen .qr-regenerate,
+.phone-screen .config-button {
+	margin-left: auto !important;
+	margin-right: auto !important;
+}
+.phone-screen .primary-button,
+.phone-screen .badge.solid,
+.phone-screen .filter.active {
+	background: linear-gradient(125deg, #fa7b3b, #f56c2c);
+	box-shadow: inset 0 1px 1px #ffba8466;
+}
+.phone-screen .badge.green.solid {
+	background: linear-gradient(110deg, #31a37d, #288c69);
+}
+.phone-screen .status-bar {
+	background: transparent;
+	font-size: 14px;
+	padding-top: 3px;
+	padding-left: 30px;
+	padding-right: 25px;
+}
+.phone-screen .card {
+	border: 1px solid #f1f0ed;
+	border-color: #f6f5f3;
+}
+.phone-screen .page-footer {
+	box-sizing: border-box;
+}
+.phone-screen .filter {
+	border-radius: 18px;
+}
+.phone-screen .topbar-title {
+	font-weight: 750;
+}
+.phone-screen .food-image {
+	border-radius: 10px;
+}
+.phone-screen .page-body {
+	padding-bottom: 12px;
+}
+
+/* 01–04 · Scan, cart and payment */
+.board-1 .status-bar {
+	height: 39px;
+}
+.board-1 .topbar {
+	height: 57px;
+}
+.board-1 .topbar-title {
+	font-size: 22px;
+}
+.board-1 .topbar-left .topbar-title {
+	font-size: 26px;
+}
+.board-1 .page-body {
+	padding: 12px 12px 18px;
+	padding-top: 10px;
+}
+.board-1 .item-name {
+	font-size: 18px;
+}
+.board-1 .item-meta {
+	font-size: 17px;
+}
+.board-1 .item-amount {
+	font-size: 21px;
+}
+.board-1 .card {
+	padding: 12px;
+}
+.board-1 .item-row {
+	gap: 16px;
+	padding: 6px 0;
+}
+.board-1 .item-row:first-child {
+	padding-top: 0;
+}
+.board-1 .item-row:last-child {
+	padding-bottom: 0;
+}
+.board-1 .item-row .food-image {
+	width: 94px;
+	height: 87px;
+}
+.board-1 .bottom-nav {
+	height: 70px;
+}
+.catalog-intro {
+	padding: 0 24px 14px;
+}
+.room-chip {
+	font-size: 15px;
+	padding: 3px 8px;
+}
+.catalog-heading {
+	font-size: 30px;
+	margin-top: 17px;
+	line-height: 1.4;
+}
+.catalog-subtitle {
+	font-size: 16px;
+	margin-top: 0;
+}
+.catalog-hero {
+	height: 146px !important;
+	border-radius: 17px 17px 0 0 !important;
+}
+.catalog-search {
+	padding: 12px 15px 0;
+}
+.catalog-search .search-field {
+	height: 42px;
+	margin-bottom: 17px;
+}
+.catalog-search input {
+	font-size: 16px;
+}
+.category-rail {
+	width: 76px;
+}
+.category-rail button {
+	height: 61px;
+	font-size: 18px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.catalog-products {
+	padding: 0 15px 0 15px;
+}
+.catalog-product {
+	gap: 19px;
+	padding-bottom: 16px;
+}
+.catalog-food {
+	width: 92px !important;
+	height: 87px !important;
+}
+.catalog-product-info .item-name {
+	font-size: 18px;
+	margin-top: 1px;
+}
+.product-description {
+	font-size: 12px;
+}
+.catalog-price {
+	font-size: 21px;
+}
+.add-button {
+	width: 33px;
+	height: 33px;
+}
+.screen-01 .page-footer,
+.screen-02 .page-footer {
+	padding: 9px 16px;
+}
+.cart-summary {
+	gap: 32px;
+	font-size: 15px;
+	white-space: nowrap;
+}
+.cart-dock .price {
+	font-size: 30px;
+}
+.cart-dock .primary-button {
+	width: 151px;
+	height: 53px;
+	font-size: 19px;
+}
+.cart-sheet {
+	padding: 14px 21px 24px;
+}
+.sheet-handle {
+	height: 5px;
+	margin-bottom: 25px;
+}
+.sheet-heading {
+	font-size: 23px;
+	margin-bottom: 21px;
+}
+.sheet-heading .muted {
+	font-size: 16px;
+}
+.cart-line {
+	gap: 17px;
+	margin-bottom: 17px;
+	display: grid;
+	grid-template-columns: 93px 1fr auto;
+	column-gap: 17px;
+	align-items: start;
+}
+.cart-line .food-image {
+	width: 93px;
+	height: 87px;
+}
+.cart-line .item-name {
+	font-size: 17px;
+	white-space: nowrap;
+}
+.cart-line .stack {
+	gap: 10px;
+}
+.cart-lines {
+	margin-bottom: 17px;
+}
+.stepper {
+	gap: 12px;
+	font-size: 22px;
+}
+.stepper button {
+	width: 39px;
+	height: 40px;
+}
+.cart-room {
+	padding: 9px 12px;
+	font-size: 17px;
+}
+.cart-total {
+	margin-top: 14px;
+	border-top: 1px solid var(--line);
+	padding: 15px 0 18px;
+	font-size: 19px;
+	font-weight: 600;
+}
+.cart-total .price {
+	font-size: 39px;
+	line-height: 1.2;
+}
+.cart-sheet > .primary-button {
+	height: 64px;
+	font-size: 20px;
+}
+.destination {
+	height: 89px;
+	padding: 16px 20px;
+	margin-bottom: 12px;
+	background: linear-gradient(125deg, #fb7d3b, #f26c2c);
+}
+.destination-title {
+	font-size: 23px;
+}
+.destination .small {
+	font-size: 15px;
+}
+.board-1 .checkout-total {
+	padding: 17px 18px;
+	margin-top: 14px;
+	font-size: 19px;
+	font-weight: 600;
+}
+.checkout-total .price-line {
+	margin-top: 14px;
+	padding-top: 12px;
+	font-size: 19px;
+}
+.checkout-total .price {
+	font-size: 43px;
+	line-height: 1.2;
+}
+.board-1 .payment-choice {
+	margin-top: 14px;
+	padding: 13px 18px;
+	gap: 16px;
+	font-size: 18px;
+}
+.wechat-icon {
+	width: 47px;
+	height: 47px;
+}
+.payment-selected {
+	width: 25px;
+	height: 25px;
+}
+.payment-recipient {
+	font-size: 15px;
+	margin-left: 15px;
+}
+.screen-03 .page-footer,
+.screen-04 .page-footer {
+	padding: 15px 19px 16px;
+}
+.checkout-dock .primary-button {
+	height: 68px;
+	min-width: 70%;
+	font-size: 21px;
+}
+.checkout-dock .price {
+	font-size: 39px;
+}
+.payment-sheet {
+	padding: 0 20px 25px;
+}
+.payment-sheet-heading {
+	height: 67px;
+	font-size: 21px;
+	border-bottom: 1px solid #f1f1f0;
+}
+.payment-merchant {
+	margin-top: 30px;
+	font-size: 19px;
+}
+.payment-value {
+	font-size: 56px;
+	margin: 8px 0 24px;
+	line-height: 1.2;
+	font-weight: 600;
+}
+.payment-value > text {
+	font-size: 32px;
+}
+.payment-source {
+	padding: 20px 0;
+	font-size: 18px;
+}
+.payment-source .muted {
+	font-size: 18px;
+}
+.payment-sheet .wechat-button {
+	height: 64px;
+	margin-top: 9px;
+	font-size: 21px;
+	border-radius: 12px;
+}
+.payment-caption {
+	font-size: 15px;
+	margin-top: 16px;
+}
+
+/* 05–08 · Customer orders */
+.board-2 .status-bar {
+	height: 39px;
+}
+.board-2 .topbar {
+	height: 57px;
+}
+.board-2 .topbar-title {
+	font-size: 24px;
+}
+.board-2 .page-body {
+	padding-left: 13px;
+	padding-right: 13px;
+}
+.board-2 .progress-body {
+	padding-top: 0;
+}
+.board-2 .card {
+	padding: 17px;
+}
+.board-2 .item-name {
+	font-size: 16px;
+	font-weight: 500;
+}
+.board-2 .item-meta {
+	font-size: 16px;
+	color: var(--ink);
+}
+.board-2 .item-amount {
+	font-size: 20px;
+}
+.board-2 .item-info {
+	gap: 2px;
+}
+.board-2 .food-small {
+	width: 88px !important;
+	height: 63px !important;
+}
+.board-2 .card-heading {
+	font-size: 19px;
+}
+.board-2 .card-heading .muted {
+	font-size: 16px;
+}
+.board-2 .primary-button,
+.board-2 .outline-button {
+	font-size: 19px;
+	height: 51px;
+}
+.board-2 .bottom-nav {
+	height: 72px;
+}
+.board-2 .nav-item {
+	font-size: 13px;
+}
+.success-body {
+	padding-top: 10px;
+}
+.success-symbol {
+	width: 136px;
+	height: 136px;
+	margin-bottom: 3px;
+}
+.success-symbol > view {
+	width: 86px;
+	height: 86px;
+}
+.success-title {
+	font-size: 31px;
+	line-height: 1.35;
+}
+.success-amount {
+	font-size: 47px;
+	line-height: 1.15;
+}
+.success-amount > text {
+	font-size: 26px;
+}
+.success-subtitle {
+	font-size: 17px;
+	margin: 10px 0 15px;
+}
+.success-receipt .card-heading {
+	margin-bottom: 10px;
+}
+.success-receipt .item-row {
+	padding: 5px 0;
+}
+.success-receipt .section-divider {
+	margin-top: 11px;
+}
+.success-receipt .info-row {
+	font-size: 16px;
+	padding: 5px 0;
+	justify-content: flex-start;
+	gap: 0;
+}
+.success-receipt .info-row > text:first-child {
+	width: 104px;
+}
+.success-body > button {
+	margin-bottom: 13px;
+}
+.orders-body {
+	padding-top: 11px;
+}
+.board-2 .filters {
+	gap: 7px;
+	margin-bottom: 17px;
+}
+.board-2 .filter {
+	font-size: 16px;
+	height: 38px;
+	padding: 0 10px;
+}
+.board-2 .customer-order {
+	padding: 13px 16px 11px;
+	margin-bottom: 12px;
+}
+.customer-order .order-room {
+	font-size: 20px;
+}
+.customer-order .small {
+	font-size: 14px;
+}
+.customer-order .badge {
+	font-size: 14px;
+	padding: 3px 15px;
+}
+.order-food-strip {
+	gap: 14px;
+	margin-top: 13px;
+}
+.order-strip-item {
+	width: 108px;
+	font-size: 15px;
+	line-height: 1.4;
+}
+.order-strip-item .food-image {
+	width: 108px !important;
+	height: 72px !important;
+	margin-bottom: 7px;
+}
+.customer-order .price {
+	font-size: 31px;
+}
+.customer-order .order-actions {
+	margin-top: 4px;
+}
+.customer-order .button-sm {
+	height: 38px;
+	min-width: 145px;
+	font-size: 17px;
+	border-radius: 12px;
+}
+.single-order-item {
+	margin: 13px 0 7px;
+	gap: 15px;
+	font-size: 16px;
+}
+.single-order-item .food-image {
+	width: 108px !important;
+	height: 70px !important;
+}
+.single-order-item .stack {
+	align-self: flex-start;
+	padding-top: 9px;
+}
+.order-status-panel {
+	padding: 25px 17px 19px;
+	margin-bottom: 13px;
+	padding-bottom: 16px;
+}
+.status-heading {
+	gap: 16px;
+	height: 88px;
+}
+.order-status-title {
+	font-size: 32px;
+	line-height: 1.25;
+}
+.order-status-subtitle {
+	font-size: 16px;
+	margin-top: 4px;
+}
+.order-status-panel .progress-steps {
+	margin-top: 14px;
+	padding-top: 13px;
+}
+.board-2 .progress-step {
+	font-size: 14px;
+	gap: 9px;
+}
+.board-2 .step-node {
+	width: 19px;
+	height: 19px;
+}
+.board-2 .progress-step:not(:last-child)::after {
+	top: 9px;
+}
+.board-2 .progress-body .room-details {
+	padding: 12px 18px;
+}
+.room-details .stack {
+	gap: 1px;
+}
+.board-2 .room-details .muted {
+	font-size: 16px;
+}
+.board-2 .room-details .order-room {
+	font-size: 23px;
+	line-height: 1.2;
+}
+.progress-body .card {
+	margin-bottom: 12px;
+	padding: 12px 18px;
+}
+.progress-body .card-heading {
+	margin-bottom: 12px;
+	line-height: 1.3;
+}
+.progress-body .item-row {
+	padding: 0;
+	margin-bottom: 10px;
+}
+.progress-body .item-row:last-child {
+	margin-bottom: 0;
+}
+.progress-body .price-line {
+	margin-top: 6px;
+	padding-top: 7px;
+	font-size: 19px;
+}
+.progress-body .price {
+	font-size: 31px;
+	line-height: 1.2;
+}
+.progress-body .timeline-row {
+	font-size: 14px;
+	padding-bottom: 10px;
+	gap: 17px;
+	padding-left: 28px;
+}
+.progress-body .timeline-row:last-child {
+	padding-bottom: 0;
+}
+.delivery-note {
+	font-size: 14px;
+	margin-top: 8px;
+}
+.order-status-panel.completed {
+	background: #dcefe5;
+	padding: 18px 17px 15px;
+}
+.order-status-panel.completed .progress-steps {
+	margin-top: 6px;
+}
+.delivered-time {
+	font-size: 14px;
+	margin-top: 14px;
+}
+.progress-body .info-row {
+	font-size: 16px;
+	padding: 4px 0;
+}
+.screen-08 .page-footer {
+	background: transparent;
+	padding: 12px 14px 25px;
+}
+
+/* 09–12 · Kitchen and delivery */
+.board-3 .page-body {
+	padding: 2px 10px 10px;
+}
+.board-3 .topbar {
+	height: 59px;
+}
+.board-3 .topbar.has-subtitle {
+	height: 65px;
+}
+.board-3 .topbar-subtitle {
+	font-size: 14px;
+}
+.board-3 .page-footer {
+	padding: 8px 12px 18px;
+	background: transparent;
+}
+.board-3 .page-footer .primary-button {
+	height: 57px;
+	font-size: 22px;
+}
+.board-3 .bottom-nav {
+	height: 64px;
+}
+.board-3 .nav-item {
+	font-size: 14px;
+}
+.new-order-banner {
+	padding: 12px 14px;
+	height: 59px;
+}
+.new-order-banner .fill {
+	font-size: 20px;
+}
+.new-order-banner .small {
+	font-size: 13px;
+}
+.sound-setting {
+	margin-top: 9px;
+	padding: 9px 15px;
+	height: 60px;
+	font-size: 17px;
+}
+.sound-setting .small {
+	font-size: 13px;
+}
+.supplier-tabs {
+	padding: 15px 22px 12px;
+	gap: 24px;
+	padding-bottom: 8px;
+}
+.supplier-tabs button {
+	font-size: 18px;
+	padding-bottom: 5px;
+}
+.supplier-order {
+	padding: 12px 18px 13px;
+}
+.supplier-room {
+	font-size: 32px;
+}
+.supplier-order .bold {
+	font-size: 18px;
+}
+.supplier-order .badge {
+	font-size: 17px;
+	border-radius: 11px;
+	padding: 4px 12px;
+}
+.supplier-order .small {
+	font-size: 14px;
+}
+.supplier-dishes {
+	margin: 5px 0 9px;
+}
+.supplier-dish {
+	margin: 6px 0;
+	gap: 12px;
+	font-size: 17px;
+}
+.supplier-dish .food-image {
+	width: 68px;
+	height: 44px;
+	border-radius: 8px;
+}
+.dish-count {
+	font-size: 26px;
+}
+.supplier-order .button-sm {
+	min-width: 156px;
+	height: 44px;
+	font-size: 18px;
+}
+.supplier-detail .card {
+	margin-bottom: 10px;
+	padding: 17px;
+}
+.supplier-room-card {
+	padding: 14px 17px !important;
+}
+.large-room {
+	font-size: 60px;
+	line-height: 1.15;
+}
+.room-unit {
+	font-size: 26px;
+	margin-left: 9px;
+}
+.supplier-room-card .badge {
+	font-size: 20px;
+	padding: 5px 17px;
+}
+.supplier-subtitle {
+	font-size: 17px;
+	margin-top: 0;
+}
+.supplier-metadata {
+	margin-top: 21px;
+	padding: 12px 18px;
+}
+.supplier-metadata .muted {
+	font-size: 15px;
+}
+.supplier-metadata > view > text:last-child {
+	font-size: 25px;
+	margin-top: 0;
+	line-height: 1.3;
+}
+.supplier-detail .card-heading {
+	font-size: 19px;
+	margin-bottom: 13px;
+}
+.supplier-detail .card-heading .muted {
+	font-size: 18px;
+}
+.supplier-detail .item-row {
+	padding: 0;
+	margin-bottom: 10px;
+	border: 1px solid #f4f3f0 !important;
+	border-radius: 12px;
+	gap: 15px;
+}
+.supplier-detail .item-row:last-child {
+	margin-bottom: 0;
+}
+.supplier-detail .item-row .food-image {
+	width: 94px;
+	height: 88px;
+}
+.supplier-detail .item-name {
+	font-size: 18px;
+	font-weight: 500;
+}
+.supplier-detail .item-quantity {
+	font-size: 32px;
+	padding-right: 13px;
+	font-weight: 600;
+}
+.supplier-detail .item-info {
+	padding: 0;
+}
+.supplier-detail .check-box {
+	margin-right: 10px;
+	width: 27px;
+	height: 27px;
+}
+.supplier-location {
+	padding: 12px 19px !important;
+}
+.supplier-location .muted {
+	font-size: 17px;
+}
+.supplier-location .order-room {
+	font-size: 25px;
+}
+.supplier-detail .progress-step {
+	font-size: 16px;
+}
+.supplier-detail .progress-steps {
+	margin-top: 10px;
+	padding: 12px 0 5px;
+}
+.supplier-detail .step-node {
+	width: 32px;
+	height: 32px;
+}
+.supplier-detail .progress-step:not(:last-child)::after {
+	top: 15px;
+}
+.packing-note {
+	margin: 5px 13px 0;
+	padding: 16px 15px;
+	gap: 17px;
+}
+.packing-note .bold {
+	font-size: 21px;
+	margin-bottom: 1px;
+}
+.packing-note .muted {
+	font-size: 15px;
+}
+.board-3 .dialog-overlay {
+	padding: 40px;
+}
+.board-3 .dialog {
+	padding: 24px 17px 20px;
+	border-radius: 16px;
+	transform: translateY(39px);
+}
+.board-3 .dialog-title {
+	font-size: 30px;
+	margin-top: 16px;
+	margin-bottom: 11px;
+	line-height: 1.3;
+}
+.board-3 .dialog-copy {
+	font-size: 19px;
+	line-height: 1.55;
+}
+.board-3 .dialog-buttons {
+	margin-top: 26px;
+	gap: 18px;
+}
+.board-3 .dialog-buttons button {
+	height: 56px;
+	font-size: 20px;
+	font-weight: 500;
+}
+
+/* 13–17 · Room and menu management (compact source artboard) */
+.board-4 .status-bar {
+	height: 30px;
+}
+.board-4 .topbar {
+	height: 50px;
+}
+.board-4 .page-body {
+	padding: 3px 16px 10px;
+}
+.board-4 .topbar-title {
+	font-size: 22px;
+}
+.board-4 .topbar-left .topbar-title {
+	font-size: 27px;
+}
+.board-4 .topbar-action .badge {
+	font-size: 16px;
+	padding: 5px 23px;
+}
+.board-4 .text-button {
+	font-size: 16px;
+}
+.board-4 .bottom-nav {
+	height: 54px;
+	padding: 4px 8px;
+}
+.board-4 .nav-item {
+	font-size: 12px;
+	gap: 0;
+}
+.board-4 .search-field {
+	height: 35px;
+	margin-bottom: 11px;
+	border-radius: 19px;
+}
+.board-4 .search-field input {
+	font-size: 14px;
+}
+.board-4 .filters {
+	gap: 12px;
+	margin-bottom: 10px;
+}
+.board-4 .filter {
+	height: 33px;
+	font-size: 15px;
+	border-radius: 14px;
+}
+.admin-hero {
+	padding: 17px 16px;
+	gap: 16px;
+	border-radius: 13px;
+	background: linear-gradient(125deg, #192d36, #142027);
+}
+.admin-hero .fill > text:first-child {
+	font-size: 20px;
+}
+.admin-hero .fill > text:last-child {
+	font-size: 14px;
+	margin-top: 3px;
+}
+.admin-home .section-title {
+	font-size: 18px;
+	margin: 12px 2px 6px;
+}
+.admin-menu {
+	gap: 6px;
+	margin-bottom: 7px;
+}
+.admin-menu button {
+	height: 93px;
+	font-size: 18px;
+	gap: 5px;
+	border-radius: 13px;
+}
+.admin-payment-entry {
+	padding: 13px 16px;
+	font-size: 16px;
+	border-radius: 13px;
+}
+.admin-home > .admin-payment-entry {
+	margin-bottom: 8px;
+}
+.business-flow {
+	padding: 9px 16px;
+	font-size: 14px;
+}
+.business-flow > view {
+	margin-top: 5px;
+	gap: 19px;
+}
+.flow-number {
+	width: 24px;
+	height: 24px;
+	font-size: 14px;
+}
+.room-card {
+	min-height: 95px;
+	padding: 10px 16px;
+	gap: 15px;
+	border-radius: 14px;
+}
+.board-4 .room-card {
+	margin-bottom: 7px;
+}
+.room-card .fill .row {
+	gap: 12px;
+}
+.room-card .bold {
+	font-size: 18px;
+}
+.room-card .badge {
+	font-size: 13px;
+	padding: 2px 13px;
+}
+.room-card .badge.green {
+	color: white;
+	background: #3eaa8d;
+}
+.room-card .fill > .muted {
+	font-size: 14px;
+	margin-top: 2px;
+}
+.room-actions {
+	gap: 6px;
+	height: 72px;
+	justify-content: space-between;
+}
+.qr-link {
+	font-size: 13px;
+}
+.edit-link {
+	font-size: 13px;
+	padding: 0;
+	gap: 8px;
+}
+.room-actions .button-sm {
+	font-size: 13px;
+	height: 35px;
+}
+.board-4 .inline-note {
+	font-size: 13px;
+	margin-top: 5px;
+}
+.qr-card {
+	padding: 14px 18px 16px;
+	padding-top: 16px;
+	padding-bottom: 18px;
+}
+.qr-room {
+	font-size: 27px;
+	line-height: 1.25;
+}
+.qr-subtitle {
+	font-size: 19px;
+	margin-top: 0;
+	line-height: 1.3;
+}
+.room-qr {
+	width: 208px !important;
+	height: 202px !important;
+	margin: 10px 0 6px;
+}
+.qr-label {
+	font-size: 17px;
+}
+.binding-card {
+	font-size: 15px;
+	padding: 14px 17px;
+}
+.binding-card > .row {
+	margin-top: 12px;
+	gap: 57px;
+}
+.binding-card .text-button {
+	font-size: 14px;
+	padding: 0;
+}
+.qr-body > .primary-button {
+	height: 42px;
+	font-size: 17px;
+}
+.qr-regenerate {
+	margin: 14px auto;
+}
+.qr-demo-note {
+	margin-top: 14px;
+	font-size: 12px;
+}
+.product-card {
+	padding: 8px 10px;
+	min-height: 123px;
+	gap: 17px;
+}
+.board-4 .product-card {
+	margin-bottom: 8px;
+}
+.product-card .food-image {
+	width: 109px;
+	height: 108px;
+	border-radius: 9px;
+}
+.product-info {
+	gap: 4px;
+	padding-top: 3px;
+}
+.product-info .bold {
+	font-size: 18px;
+}
+.category-tag {
+	font-size: 14px;
+	padding: 0 7px;
+}
+.product-price {
+	font-size: 22px;
+}
+.product-actions {
+	padding: 10px 7px 4px 0;
+	gap: 4px;
+}
+.product-actions .muted {
+	font-size: 13px;
+}
+.product-actions .switch-control {
+	width: 48px;
+	height: 24px;
+}
+.product-actions .switch-control.on::before {
+	transform: translateX(24px);
+}
+.photo-field {
+	padding: 11px 14px 12px;
+}
+.photo-preview {
+	margin-top: 9px;
+}
+.edit-food-photo {
+	height: 145px !important;
+}
+.change-photo {
+	font-size: 13px;
+	padding: 6px 13px;
+	bottom: 9px;
+	right: 8px;
+}
+.product-form {
+	margin-top: 12px;
+	padding: 0 15px !important;
+}
+.product-form .form-row {
+	min-height: 51px;
+	padding: 12px 0;
+	font-size: 16px;
+	gap: 10px;
+}
+.product-form .form-label {
+	width: 33%;
+	font-weight: 600;
+}
+.product-form .form-row input {
+	text-align: left;
+	font-size: 16px;
+}
+.product-form .form-row picker {
+	flex: 1;
+}
+.product-form .form-row picker .row {
+	justify-content: space-between;
+}
+.product-form .price-input-prefix {
+	margin-left: 0;
+}
+.product-form .price-input-prefix + input {
+	flex: 1;
+}
+.product-form .form-row:last-child .form-label {
+	flex: none;
+}
+.product-form .form-row:last-child > text:last-child {
+	flex: 1;
+}
+.edit-note {
+	margin: 11px 6px 0;
+	font-size: 14px;
+}
+.screen-17 .page-footer {
+	background: transparent;
+	padding: 12px 15px 42px;
+}
+.screen-17 .page-footer .primary-button {
+	font-size: 17px;
+	height: 47px;
+	font-weight: 500;
+}
+
+/* 18–22 · Orders, accounts and settings */
+.board-5 .status-bar {
+	height: 32px;
+}
+.board-5 .topbar {
+	height: 50px;
+}
+.board-5 .topbar-title {
+	font-size: 22px;
+}
+.board-5 .topbar-left .topbar-title {
+	font-size: 26px;
+}
+.board-5 .page-body {
+	padding: 4px 13px 12px;
+}
+.board-5 .bottom-nav {
+	height: 57px;
+	padding: 5px 8px;
+}
+.board-5 .nav-item {
+	font-size: 12px;
+	gap: 0;
+}
+.board-5 .search-field {
+	height: 38px;
+	margin-bottom: 10px;
+}
+.board-5 .search-field input {
+	font-size: 15px;
+}
+.board-5 .filter {
+	font-size: 14px;
+	height: 34px;
+	border-radius: 10px;
+}
+.board-5 .filters {
+	gap: 10px;
+	margin-bottom: 13px;
+}
+.board-5 .card {
+	border-radius: 15px;
+}
+.order-dropdowns {
+	margin-top: 0;
+	margin-bottom: 12px;
+	gap: 14px;
+}
+.dropdown-chip {
+	min-width: 126px;
+	font-size: 14px;
+	height: 30px;
+}
+.admin-order-card {
+	padding: 8px 14px;
+}
+.admin-order-card .bold {
+	font-size: 17px;
+}
+.admin-order-card .small {
+	font-size: 14px;
+}
+.admin-order-card .badge {
+	font-size: 13px;
+	padding: 3px 12px;
+}
+.admin-order-card .between > .row {
+	gap: 8px;
+}
+.admin-order-card .between > .row:last-child {
+	gap: 5px;
+}
+.admin-order-food {
+	margin: 8px 0 6px;
+	gap: 13px;
+}
+.admin-order-thumbnails .food-image {
+	width: 59px;
+	height: 48px;
+	border-radius: 7px;
+}
+.admin-order-food .fill {
+	font-size: 14px;
+	line-height: 1.65;
+}
+.admin-order-price {
+	font-size: 22px;
+}
+.view-order {
+	font-size: 13px;
+	padding: 4px 12px;
+}
+.admin-completed-panel {
+	padding: 9px 12px;
+	margin-bottom: 9px;
+	gap: 12px;
+}
+.admin-completed-panel .admin-completed-title {
+	font-size: 22px;
+	line-height: 1.3;
+}
+.admin-completed-panel > view > text {
+	font-size: 15px;
+}
+.screen-19 .topbar {
+	height: 38px;
+}
+.admin-detail .card {
+	padding: 10px 14px;
+	margin-bottom: 10px;
+}
+.admin-detail .card-heading {
+	font-size: 17px;
+	margin-bottom: 7px;
+	line-height: 1.3;
+}
+.admin-detail .item-row {
+	padding: 0;
+	gap: 11px;
+	margin-bottom: 6px;
+}
+.admin-detail .item-row:last-child {
+	margin-bottom: 0;
+}
+.admin-detail .food-small {
+	width: 59px !important;
+	height: 45px !important;
+}
+.admin-detail .item-name,
+.admin-detail .item-meta {
+	font-size: 14px;
+}
+.admin-detail .item-amount {
+	font-size: 18px;
+}
+.admin-detail .price-line {
+	padding-top: 5px;
+	margin-top: 5px;
+	font-size: 17px;
+}
+.admin-detail .price {
+	font-size: 29px;
+	line-height: 1.2;
+}
+.admin-detail .info-row {
+	padding: 4px 0;
+	font-size: 14px;
+	justify-content: flex-start;
+	border-bottom: 1px solid #f1f1f0;
+}
+.admin-detail .info-row > text:first-child {
+	width: 48%;
+}
+.admin-detail .timeline-row {
+	font-size: 15px;
+	line-height: 20px;
+	padding-bottom: 5px;
+	padding-left: 31px;
+	gap: 18px;
+}
+.exception-entry .row {
+	margin-bottom: 1px;
+}
+.exception-entry .small {
+	font-size: 13px;
+}
+.exception-entry .badge {
+	font-size: 13px;
+}
+.account-card {
+	padding: 14px 16px 10px;
+}
+.account-name {
+	font-size: 18px;
+	margin-bottom: 1px;
+}
+.account-card .small,
+.permission-account .small {
+	font-size: 14px;
+}
+.account-card .badge,
+.permission-account .badge {
+	font-size: 14px;
+	padding: 5px 12px;
+	border-radius: 10px;
+}
+.account-card-bottom {
+	margin-top: 13px;
+	padding-top: 10px;
+	gap: 16px;
+	font-size: 14px;
+}
+.account-card-bottom .muted {
+	font-size: 14px;
+}
+.account-card-bottom .text-button {
+	font-size: 14px;
+	white-space: nowrap;
+	margin-left: auto !important;
+}
+.permission-empty {
+	padding-top: 31px;
+}
+.permission-empty .app-icon {
+	margin-bottom: 11px;
+}
+.permission-empty .bold {
+	font-size: 16px;
+}
+.permission-empty .muted {
+	font-size: 14px;
+}
+.permission-account {
+	padding: 12px 14px;
+}
+.permission-account .account-avatar {
+	width: 52px;
+	height: 52px;
+}
+.permission-card {
+	padding: 10px 17px 5px;
+}
+.permission-card .card-heading {
+	font-size: 18px;
+	margin-bottom: 1px;
+}
+.permission-row {
+	padding: 6px 0;
+	min-height: 41px;
+	font-size: 16px;
+}
+.permission-row .muted {
+	font-size: 14px;
+}
+.permission-notes {
+	font-size: 14px;
+	padding: 0 8px;
+}
+.screen-21 .page-footer {
+	background: transparent;
+	padding: 9px 21px 24px;
+}
+.screen-21 .page-footer .primary-button {
+	height: 47px;
+	font-size: 19px;
+}
+.payment-settings .card {
+	padding: 11px 17px;
+	margin-bottom: 12px;
+}
+.payment-settings .card-heading {
+	font-size: 19px;
+	margin-bottom: 5px;
+}
+.payment-settings .wechat-icon {
+	width: 44px;
+	height: 44px;
+	border-radius: 50%;
+}
+.payment-settings .info-row {
+	font-size: 16px;
+	padding: 8px 0;
+	border-bottom: 1px solid #f2f2f1;
+}
+.payment-settings .section-divider {
+	margin: 2px 0 3px;
+	height: 0;
+}
+.config-button {
+	font-size: 15px;
+	margin: 0 auto;
+	padding: 4px;
+}
+.payment-record {
+	font-size: 16px;
+	padding: 10px 0;
+	gap: 10px;
+}
+.payment-record .muted {
+	font-size: 13px;
+	margin-top: 0;
+}
+.payment-record .badge {
+	font-size: 13px;
+}
+.rule-row {
+	font-size: 16px;
+	margin: 12px 0;
+	gap: 17px;
+}
+.record-link {
+	font-size: 15px;
+	margin-top: 12px;
+	padding-top: 11px;
+}
+
+/* #ifdef H5 */
+/* #endif */
+
+.phone-screen .nav-item .app-icon {
+	width: 29px !important;
+	height: 29px !important;
+}
+
+.phone-screen .nav-item {
+	font-size: 13px;
+}
+
+.phone-screen .overlay {
+	background: rgba(15, 18, 18, 0.62);
+}
+
+.board-1 .topbar-left {
+	padding-left: 24px;
+}
+
+.catalog-price .price-currency {
+	font-size: 0.8em;
+	margin-right: 0;
+}
+
+.cart-line .fill {
+	grid-column: 2 / 4;
+	grid-row: 1;
+	padding-top: 8px;
+}
+
+.cart-line .stepper {
+	grid-column: 3;
+	grid-row: 1;
+	align-self: end;
+	margin-bottom: 13px;
+}
+
+.payment-currency {
+	font-size: 32px;
+	margin-right: 7px;
+}
+
+.success-currency {
+	font-size: 26px;
+}
+
+.success-receipt .food-small {
+	width: 94px !important;
+}
+
+.order-strip-item:first-child {
+	width: 112px;
+}
+
+.order-strip-item:first-child .food-image {
+	width: 112px !important;
+}
+
+.order-strip-item:not(:first-child) .food-image {
+	width: 96px !important;
+}
+
+.progress-body .food-small {
+	width: 84px !important;
+	height: 60px !important;
+}
+
+.screen-08 .meal-card {
+	padding-top: 16px;
+	padding-bottom: 16px;
+}
+
+.progress-body .timeline-row::before {
+	width: 12px;
+	height: 12px;
+}
+
+.progress-body .timeline-row:not(:last-child)::after {
+	left: 5.5px;
+}
+
+.screen-11 .item-row .food-image {
+	width: 77px;
+	height: 90px;
+}
+
+.screen-11 .item-row {
+	gap: 19px;
+}
+
+.screen-11 .item-name {
+	font-size: 17px;
+}
+
+.screen-11 .progress-step.current {
+	color: var(--orange-deep);
+	font-weight: 600;
+}
+
+.room-card .fill {
+	align-self: flex-start;
+	padding-top: 1px;
+}
+
+.binding-card .between {
+	display: grid;
+	grid-template-columns: 86px 1fr auto;
+}
+
+.product-form input {
+	max-width: none;
+}
+
+.product-form .form-row:last-child .switch-control {
+	width: 60px;
+	height: 31px;
+}
+
+.product-form .form-row:last-child .switch-control::before {
+	width: 25px;
+	height: 25px;
+}
+
+.product-form .form-row:last-child .switch-control.on::before {
+	transform: translateX(29px);
+}
+
+.admin-order-thumbnails {
+	gap: 8px;
+}
+
+.admin-order-thumbnails .food-image:only-child {
+	width: 66px;
+}
+
+.admin-detail .info-row:last-child {
+	border-bottom: 0;
+}
+
+.screen-20 .search-field {
+	height: 43px;
+	margin-bottom: 14px;
+}
+
+.screen-20 .filters {
+	margin-bottom: 19px;
+}
+
+.screen-20 .account-card .row {
+	min-height: 59px;
+}
+
+.screen-20 .account-avatar {
+	width: 58px;
+	height: 58px;
+}
+
+.screen-20 .account-card-bottom {
+	margin-top: 11px;
+	padding-top: 9px;
+}
+
+.permission-scope .permission-row > .bold {
+	width: 118px;
+	flex: none;
+}
+
+.permission-scope .permission-row > .row {
+	flex: 1;
+	justify-content: space-between;
+}
+
+.permission-scope .badge {
+	margin-right: auto;
+}
+
+.payment-record .text-green {
+	font-size: 15px;
+	white-space: nowrap;
+}
+
+.payment-record .fill {
+	flex: none;
+	width: 43%;
+}
+
+.payment-record > .bold {
+	margin-left: auto;
+	font-size: 17px;
+}
+
+.payment-record > .badge {
+	font-size: 14px;
+}
+
+.payment-settings .status-rules .card-heading {
+	padding-bottom: 4px;
+	border-bottom: 1px solid var(--line);
+}
+.payment-settings .status-rules {
+	padding-top: 7px;
+	padding-bottom: 15px;
+}
+.status-rules .card-heading + .rule-row {
+	margin-top: 4px;
+}
+
+/* #ifdef H5 */
+
+@media (min-width: 760px) {
+	.phone-screen.screen-01 {
+		height: 871px;
+		min-height: 871px;
+	}
+	.phone-screen.screen-02 {
+		height: 868px;
+		min-height: 868px;
+	}
+	.phone-screen.screen-03 {
+		height: 863px;
+		min-height: 863px;
+	}
+	.phone-screen.screen-04 {
+		height: 863px;
+		min-height: 863px;
+	}
+	.phone-screen.screen-05 {
+		height: 912px;
+		min-height: 912px;
+	}
+	.phone-screen.screen-06 {
+		height: 903px;
+		min-height: 903px;
+	}
+	.phone-screen.screen-07 {
+		height: 866px;
+		min-height: 866px;
+	}
+	.phone-screen.screen-08 {
+		height: 850px;
+		min-height: 850px;
+	}
+	.phone-screen.screen-09 {
+		height: 800px;
+		min-height: 800px;
+	}
+	.phone-screen.screen-10 {
+		height: 805px;
+		min-height: 805px;
+	}
+	.phone-screen.screen-11 {
+		height: 805px;
+		min-height: 805px;
+	}
+	.phone-screen.screen-12 {
+		height: 800px;
+		min-height: 800px;
+	}
+	.phone-screen.screen-13 {
+		height: 659px;
+		min-height: 659px;
+	}
+	.phone-screen.screen-14 {
+		height: 659px;
+		min-height: 659px;
+	}
+	.phone-screen.screen-15 {
+		height: 661px;
+		min-height: 661px;
+	}
+	.phone-screen.screen-16 {
+		height: 661px;
+		min-height: 661px;
+	}
+	.phone-screen.screen-17 {
+		height: 659px;
+		min-height: 659px;
+	}
+	.phone-screen.screen-18 {
+		height: 725px;
+		min-height: 725px;
+	}
+	.phone-screen.screen-19 {
+		height: 743px;
+		min-height: 743px;
+	}
+	.phone-screen.screen-20 {
+		height: 754px;
+		min-height: 754px;
+	}
+	.phone-screen.screen-21 {
+		height: 748px;
+		min-height: 748px;
+	}
+	.phone-screen.screen-22 {
+		height: 734px;
+		min-height: 734px;
+	}
+}
+
+/* #endif */
+
+.phone-screen .muted {
+	font-weight: 500;
+}
+
+.phone-screen .badge {
+	font-weight: 500;
+}
+
+.checkout-total > .between .bold {
+	font-size: 24px;
+	line-height: 1.2;
+}
+
+.supplier-room-card .between {
+	height: 70px;
+}
+
+.supplier-room-card .between > view:first-child {
+	display: flex;
+	align-items: baseline;
+	white-space: nowrap;
+	transform: translateY(-5px);
+}
+
+.supplier-bag {
+	width: 90px !important;
+	height: 90px !important;
+	border-radius: 0 !important;
+	background: transparent;
+	transform: translateY(14px);
+	/* The reference crop includes its modal scrim; compensate before our live scrim. */
+	filter: brightness(2.26);
+	mix-blend-mode: multiply;
+}
+.quantity-symbol {
+	font-size: 0.7em;
+	margin-right: 2px;
+	vertical-align: 0.08em;
+}
+
+.room-card .app-icon {
+	align-self: flex-start;
+	margin-top: 8px;
+}
+
+.room-card .room-actions .app-icon {
+	align-self: center;
+	margin-top: 0;
+}
+
+.product-info .product-price .price-currency {
+	font-size: 0.75em;
+	margin-right: 0;
+}
+
+.admin-order-price .price-currency {
+	font-size: 0.8em;
+	margin-right: 0;
+}
+
+.admin-detail .item-name {
+	font-weight: 500;
+}
+
+.payment-record .price-currency {
+	font-size: 0.85em;
+	margin-right: 0;
+}
+
+.payment-settings .rule-row .app-icon {
+	width: 30px !important;
+	height: 30px !important;
+}
+
+@media (max-width: 374px) {
+	.board-1 .status-bar {
+		height: 32px;
+	}
+	.board-1 .topbar {
+		height: 49px;
+	}
+	.board-1 .topbar-left .topbar-title {
+		font-size: 23px;
+	}
+	.catalog-intro {
+		padding: 0 16px 12px;
+	}
+	.room-chip {
+		font-size: 13px;
+	}
+	.catalog-heading {
+		font-size: 24px;
+		line-height: 1.3;
+		margin-top: 11px;
+	}
+	.catalog-subtitle {
+		font-size: 13px;
+	}
+	.catalog-hero {
+		height: 124px !important;
+	}
+	.catalog-search {
+		padding-top: 8px;
+	}
+	.catalog-search .search-field {
+		height: 36px;
+		margin-bottom: 9px;
+	}
+	.catalog-search input {
+		font-size: 14px;
+	}
+	.category-rail {
+		width: 62px;
+	}
+	.category-rail button {
+		height: 49px;
+		font-size: 16px;
+	}
+	.catalog-food {
+		width: 74px !important;
+		height: 72px !important;
+	}
+	.catalog-products {
+		padding-left: 11px;
+		padding-right: 10px;
+	}
+	.catalog-product {
+		gap: 11px;
+		padding-bottom: 12px;
+	}
+	.catalog-product-info .item-name {
+		font-size: 15px;
+	}
+	.catalog-price {
+		font-size: 18px;
+	}
+	.add-button {
+		width: 27px;
+		height: 27px;
+	}
+	.cart-summary {
+		gap: 10px;
+		white-space: nowrap;
+	}
+	.cart-summary > text:first-child {
+		font-size: 13px;
+	}
+	.cart-dock .price {
+		font-size: 25px;
+	}
+	.cart-dock .primary-button {
+		width: 42%;
+		height: 47px;
+		font-size: 17px;
+		flex: none;
+	}
+	.cart-dock {
+		gap: 10px;
+	}
+	.board-1 .item-row .food-image {
+		width: 76px;
+		height: 73px;
+	}
+	.board-1 .item-name {
+		font-size: 16px;
+	}
+	.board-1 .item-meta {
+		font-size: 14px;
+	}
+	.board-1 .item-amount {
+		font-size: 18px;
+	}
+	.board-1 .checkout-total {
+		padding: 14px 16px;
+		font-size: 17px;
+	}
+	.board-1 .payment-choice {
+		margin-top: 12px;
+	}
+	.checkout-dock .primary-button {
+		min-width: 65%;
+		height: 56px;
+		font-size: 19px;
+	}
+	.checkout-dock .price {
+		font-size: 34px;
+	}
+	.product-description {
+		font-size: 10px;
+	}
+	.cart-line {
+		gap: 10px;
+	}
+	.cart-line .food-image {
+		width: 78px;
+		height: 78px;
+	}
+	.stepper {
+		gap: 8px;
+	}
+	.stepper button {
+		width: 33px;
+	}
+	.supplier-tabs {
+		padding-left: 12px;
+		padding-right: 12px;
+		gap: 16px;
+	}
+	.supplier-tabs button {
+		font-size: 17px;
+	}
+	.supplier-detail .item-name {
+		font-size: 15px;
+		white-space: nowrap;
+	}
+	.supplier-detail .item-row {
+		gap: 8px;
+	}
+	.supplier-detail .item-row .food-image {
+		width: 64px;
+		height: 64px;
+	}
+	.supplier-detail .item-quantity {
+		font-size: 26px;
+		padding-right: 0;
+	}
+	.supplier-detail .check-box {
+		width: 23px;
+		height: 23px;
+		margin-right: 6px;
+	}
+	.supplier-room-card .between > view:first-child {
+		display: flex;
+		align-items: baseline;
+		white-space: nowrap;
+	}
+	.large-room {
+		font-size: 47px;
+	}
+	.room-unit {
+		font-size: 21px;
+		margin-left: 6px;
+	}
+	.supplier-room-card .badge {
+		font-size: 16px;
+		padding: 5px 11px;
+	}
+	.supplier-detail .progress-step {
+		font-size: 14px;
+	}
+	.packing-note {
+		gap: 9px;
+		padding: 13px 10px;
+		margin-left: 0;
+		margin-right: 0;
+	}
+	.packing-note .bold {
+		font-size: 18px;
+	}
+	.packing-note .muted {
+		font-size: 12px;
+	}
+	.product-card {
+		gap: 10px;
+	}
+	.product-card .food-image {
+		width: 94px;
+	}
+	.product-info .bold {
+		font-size: 16px;
+	}
+	.room-card {
+		padding-left: 10px;
+		padding-right: 10px;
+		gap: 10px;
+	}
+	.room-card .badge {
+		padding: 2px 8px;
+	}
+	.room-card .bold {
+		font-size: 16px;
+		white-space: nowrap;
+	}
+	.room-card .fill .row {
+		flex-wrap: wrap;
+		gap: 3px 8px;
+	}
+	.room-card .fill > .muted {
+		font-size: 12px;
+	}
+	.admin-order-card .badge {
+		font-size: 12px;
+		padding: 3px 8px;
+	}
+}
+
+@media (max-width: 374px) {
+	.catalog-intro {
+		padding: 0 16px 12px;
+	}
+	.catalog-heading {
+		font-size: 24px;
+		margin-top: 11px;
+	}
+	.catalog-product {
+		gap: 11px;
+	}
+	.catalog-product-info .item-name {
+		font-size: 15px;
+	}
+	.product-description {
+		font-size: 10px;
+	}
+	.cart-summary {
+		gap: 10px;
+	}
+	.cart-line {
+		grid-template-columns: 78px 1fr auto;
+		column-gap: 10px;
+	}
+	.cart-line .stepper {
+		margin-bottom: 8px;
+	}
+	.screen-11 .item-row .food-image {
+		width: 64px;
+		height: 64px;
+	}
+	.screen-11 .item-row {
+		gap: 8px;
+	}
+	.screen-11 .item-name {
+		font-size: 15px;
+	}
+	.status-heading {
+		gap: 8px;
+	}
+	.status-heading .app-icon {
+		width: 76px !important;
+		height: 76px !important;
+	}
+	.order-status-title {
+		font-size: 27px;
+	}
+	.order-status-subtitle {
+		font-size: 13px;
+	}
+	.permission-scope .permission-row > .bold {
+		width: 104px;
+	}
+	.permission-row {
+		font-size: 14px;
+	}
+	.payment-record {
+		gap: 8px;
+	}
+	.payment-record .fill {
+		width: 43%;
+	}
+	.payment-record .muted {
+		font-size: 11px;
+	}
+	.payment-record .text-green {
+		font-size: 12px;
+	}
+	.account-card-bottom {
+		gap: 8px;
+	}
+	.account-card-bottom .text-button {
+		font-size: 12px;
+	}
+	.account-card-bottom,
+	.account-card-bottom .muted {
+		font-size: 12px;
+	}
+	.binding-card .between {
+		grid-template-columns: 68px 1fr auto;
+	}
+}
+
+@media (max-height: 700px) {
+	.board-3 .dialog {
+		transform: none;
+	}
+}

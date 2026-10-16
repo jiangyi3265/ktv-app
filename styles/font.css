@@ -1,0 +1,9 @@
+/* #ifdef H5 */
+@font-face {
+	font-family: "KTV UI Sans";
+	src: url("/static/fonts/ktv-ui-sans.woff2") format("woff2");
+	font-weight: 100 900;
+	font-style: normal;
+	font-display: swap;
+}
+/* #endif */
