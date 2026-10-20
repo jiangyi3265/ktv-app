@@ -18,8 +18,8 @@
 		<view class="catalog-intro">
 			<view class="room-chip"
 				><AppIcon name="map-pin" filled :size="19" /><text
-					>{{ state.room }} 包厢</text
-				><text class="text-green">· 已识别</text></view
+					>{{ state.room ? state.room + ' 包厢' : '请扫描包厢点餐码' }}</text
+				><text v-if="state.room" class="text-green">· 已识别</text></view
 			>
 			<text class="catalog-heading">好好吃饭，尽兴开唱</text>
 			<text class="catalog-subtitle">美味相伴，歌声更动人</text>
@@ -229,6 +229,7 @@ const selectedCategory = ref("推荐");
 watch(
 	() => props.query,
 	(value) => {
+		if (!DESIGN_MODE) return;
 		const room = value?.room || value?.scene;
 		if (room) {
 			try {

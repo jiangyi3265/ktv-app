@@ -1,8 +1,11 @@
 $ErrorActionPreference = 'Stop'
 $ktvRoot = Split-Path -Parent $PSScriptRoot
-$ktvLocal = Join-Path $ktvRoot '.local'
+$ktvLocal = if ($env:KTV_LOCAL_DIR) { $env:KTV_LOCAL_DIR } else { Join-Path $env:LOCALAPPDATA 'KtvDining' }
 New-Item -ItemType Directory -Path $ktvLocal -Force | Out-Null
 $ktvAccess = Join-Path $ktvLocal 'access.json'
+$ktvLegacyAccess = Join-Path $ktvRoot '.local/access.json'
+if (-not (Test-Path -LiteralPath $ktvAccess) -and (Test-Path -LiteralPath $ktvLegacyAccess)) { Copy-Item -LiteralPath $ktvLegacyAccess -Destination $ktvAccess }
+if (-not (Test-Path -LiteralPath (Join-Path $ktvLocal 'uploads')) -and (Test-Path -LiteralPath (Join-Path $ktvRoot '.local/uploads'))) { Copy-Item -LiteralPath (Join-Path $ktvRoot '.local/uploads') -Destination (Join-Path $ktvLocal 'uploads') -Recurse }
 if (-not (Test-Path -LiteralPath $ktvAccess)) {
     $ktvRng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
     $ktvBytes = New-Object byte[] 18
@@ -16,7 +19,7 @@ if (-not (Test-Path -LiteralPath $ktvAccess)) {
 $ktvCredentials = Get-Content -LiteralPath $ktvAccess -Raw | ConvertFrom-Json
 $env:KTV_BOOTSTRAP_ADMIN_PASSWORD = $ktvCredentials.admin.password
 $env:KTV_BOOTSTRAP_SUPPLIER_PASSWORD = $ktvCredentials.supplier.password
-$env:KTV_DEMO_PAYMENT_ENABLED = 'true'
+if (-not $env:KTV_DEMO_PAYMENT_ENABLED) { $env:KTV_DEMO_PAYMENT_ENABLED = 'false' }
 $env:KTV_UPLOAD_PATH = Join-Path $ktvLocal 'uploads'
 $env:SERVER_ADDRESS = '127.0.0.1'
 $ktvParent = Split-Path -Parent $ktvRoot
@@ -31,5 +34,5 @@ if (Test-Path -LiteralPath $ktvPrivateConfig) {
 }
 $ktvJar = Join-Path $ktvBackend 'ruoyi-admin/target/ruoyi-admin.jar'
 if (-not (Test-Path -LiteralPath $ktvJar)) { throw 'Build ktv-backend first: mvn -pl ruoyi-admin -am package -DskipTests' }
-Write-Host 'Starting KTV API. Credentials: .local/access.json. Demo payment enabled.'
+Write-Host "Starting KTV API. Private credentials: $ktvAccess. Demo payment: $env:KTV_DEMO_PAYMENT_ENABLED"
 & java -jar $ktvJar

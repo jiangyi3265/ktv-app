@@ -3,12 +3,12 @@ const fs = require("node:fs/promises"),
 	assert = require("node:assert/strict");
 (async () => {
 	const access = JSON.parse(
-		(await fs.readFile(".local/access.json", "utf8")).replace(
+		(await fs.readFile(process.env.KTV_TEST_ACCESS || ".local/access.json", "utf8")).replace(
 			/^\uFEFF/,
 			"",
 		),
 	);
-	const browser = await chromium.launch(),
+	const browser = await chromium.launch({args:["--renderer-process-limit=2"]}),
 		errors = [],
 		checks = [];
 	const contexts = await Promise.all(
@@ -62,7 +62,10 @@ const fs = require("node:fs/promises"),
 			.waitFor({ state: "hidden" });
 	}
 	try {
-		await go(customer, "index/index");
+		const apiLogin = await fetch('http://127.0.0.1:8080/ktv-api/sessions/staff', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(access.admin) }).then(r=>r.json());
+		const qr = await fetch('http://127.0.0.1:8080/ktv-api/rooms/A08/qr', { method: 'POST', headers: { 'X-KTV-Token': apiLogin.token } }).then(r=>r.json());
+		await go(customer, "index/index?scene=" + qr.scene);
+		await waitText(screen(customer).locator('.room-chip'), /A08/);
 		await screen(customer).locator(".catalog-product").first().waitFor();
 		await go(supplier, "supplier/workbench");
 		await login(supplier, access.supplier);
@@ -113,6 +116,7 @@ const fs = require("node:fs/promises"),
 			screen(customer).locator(".order-status-title"),
 			/制作中/,
 		);
+		for (const check of await screen(supplier).locator('.check-box').all()) await check.click();
 		await click(supplier, "出餐并开始配送");
 		await supplier.locator(".screen-12:visible").waitFor();
 		await waitText(
@@ -161,6 +165,7 @@ const fs = require("node:fs/promises"),
 			.locator(".catalog-product")
 			.filter({ hasText: "宫保鸡丁饭" })
 			.waitFor({ state: "hidden" });
+		await admin.waitForFunction(() => !document.querySelector('.uni-toast'));
 		await product.locator(".switch-control").click();
 		await screen(customer)
 			.locator(".catalog-product")

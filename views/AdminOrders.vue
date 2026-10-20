@@ -23,6 +23,7 @@
 			</button></template
 		>
 		<view v-if="page === '18'" class="page-body admin-orders">
+			<OrderPages />
 			<view class="search-field"
 				><AppIcon name="search" color="gray" :size="18" /><input
 					v-model="search"
@@ -198,7 +199,9 @@
 					><text>{{ event.label }}</text></view
 				></view
 			>
+			<OrderOperations v-if="!DESIGN_MODE" :order="detailOrder" />
 			<button
+				v-if="DESIGN_MODE"
 				class="card exception-entry"
 				@click="pendingRule('异常处理')"
 			>
@@ -269,6 +272,7 @@
 					>外包账号仅可查看分配订单</text
 				><text class="muted small">不开放 KTV 其他经营数据</text></view
 			>
+			<AdminSecurity v-if="!DESIGN_MODE" />
 		</view>
 		<view v-else-if="page === '21'" class="page-body permission-body">
 			<view class="card permission-account"
@@ -367,13 +371,13 @@
 					v-model="permissionPassword"
 					password
 					class="dialog-input"
-					placeholder="留空不修改，重设需 12–72 位"
+					placeholder="留空不修改，至少12字符、最多72字节"
 					aria-label="重设食堂登录密码"
 			/></view>
 			<view class="permission-notes"
 				><AppIcon name="info-circle" color="gray" :size="16" /><view
-					><text>食堂与配送账号分工待确认</text
-					><text>金额及联系方式是否开放待确认</text></view
+					><text>食堂负责接单、制作及确认送达</text
+					><text>食堂仅能查看分配订单，不显示金额</text></view
 				></view
 			>
 		</view>
@@ -391,7 +395,14 @@
 				><view class="info-row"
 					><text>收款主体</text><text>KTV 商户</text></view
 				><view class="info-row"
-					><text>商户号</text><text>**** 0086</text></view
+					><text>接入状态</text
+					><text>{{
+						DESIGN_MODE
+							? "**** 0086"
+							: connection.wechatPayment
+								? "已配置，待正式验收"
+								: "尚未配置"
+					}}</text></view
 				><view class="section-divider" /><button
 					class="text-button config-button"
 					@click="paymentConfigOpen = true"
@@ -413,7 +424,7 @@
 							DESIGN_MODE
 								? "2026-10-15 " +
 									(record.paid ? "20:42" : "21:03")
-								: record.createdAt
+								: (record.paidAt || record.createdAt)
 										?.replace("T", " ")
 										.slice(0, 16)
 						}}</text></view
@@ -443,7 +454,7 @@
 					><AppIcon name="receipt" :size="26" /><text
 						>KTV 与外包方线下结算</text
 					></view
-				><button class="record-link" @click="go('19')">
+				><button class="record-link" @click="go('18')">
 					<text>查看状态变更记录</text
 					><AppIcon
 						name="chevron-right"
@@ -498,8 +509,13 @@
 					><text class="dialog-copy"
 						>需要 KTV 提供小程序 AppID
 						和微信支付商户号，并由服务端配置支付密钥、证书与回调地址。</text
-					><text class="muted config-hint"
-						>当前为示例配置，不会发起真实交易。</text
+					><text class="muted config-hint">{{
+						DESIGN_MODE
+							? "设计展示模式，不会发起真实交易。"
+							: connection.wechatPayment
+								? "已接入微信支付；正式营业前须完成真机付款、退款验收。"
+								: "配置完成前无法发起真实交易，密钥不要填写到客户端。"
+					}}</text
 					><button
 						class="primary-button"
 						@click="paymentConfigOpen = false"
@@ -515,6 +531,9 @@
 import { computed, reactive, ref, watch, provide } from "vue";
 provide("artboard", 5);
 import AppShell from "../components/AppShell.vue";
+import OrderPages from "../components/OrderPages.vue";
+import OrderOperations from "../components/OrderOperations.vue";
+import AdminSecurity from "../components/AdminSecurity.vue";
 import AppIcon from "../components/AppIcon.vue";
 import FoodImage from "../components/FoodImage.vue";
 import ItemList from "../components/ItemList.vue";
@@ -531,6 +550,7 @@ import {
 } from "../common/store";
 import { STATUS } from "../common/domain.mjs";
 import { go, toast } from "../common/pages";
+import { useOrderFilter } from "../common/useOrderFilter";
 const props = defineProps({ page: String, query: Object });
 provide(
 	"referencePage",
@@ -553,6 +573,27 @@ const search = ref(""),
 	permissionPassword = ref(""),
 	accountError = ref(""),
 	paymentConfigOpen = ref(false);
+useOrderFilter("admin", () =>
+	props.page === "18"
+		? {
+				filter:
+					{
+						全部: "",
+						待付款: "unpaid",
+						处理中: "active",
+						已完成: "completed",
+					}[filter.value] || "",
+				search: search.value,
+				room: state.rooms[roomFilter.value - 1]?.id || "",
+				payment:
+					paymentFilter.value === 1
+						? "paid"
+						: paymentFilter.value === 2
+							? "unpaid"
+							: "",
+			}
+		: {},
+);
 const orders = computed(() =>
 	state.orders
 		.filter(
@@ -581,6 +622,9 @@ const orders = computed(() =>
 const detailOrder = computed(
 	() =>
 		state.orders.find((order) => order.id === props.query?.id) ||
+		(state.orderDetail?.id === props.query?.id
+			? state.orderDetail
+			: null) ||
 		(!DESIGN_MODE && props.query?.id ? emptyOrder : activeOrder.value),
 );
 const detailStatus = computed(() =>
@@ -679,7 +723,7 @@ function pendingRule(title) {
 		content:
 			title === "异常处理"
 				? "取消阶段、退款审核及执行责任需确认后开通。"
-				: "按包厢、餐品或其他方式分配的规则需确认后开通。当前仅展示已分配订单。",
+				: "新订单分配给首个已启用且具有接单、送达权限的食堂。管理员可在订单详情中填写原因后转派。食堂端仅显示其负责的订单，不展示金额。",
 		showCancel: false,
 		confirmColor: "#f57636",
 	});

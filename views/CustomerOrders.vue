@@ -16,6 +16,16 @@
 				去点餐
 			</button></view
 		>
+		<view
+			v-else-if="page === '05' && !DESIGN_MODE && !currentOrder.paid"
+			class="empty-state"
+		>
+			<text>尚未确认支付成功</text
+			><text>请查看订单状态，避免重复付款</text>
+			<button class="primary-button" @click="openOrder(currentOrder)">
+				查看订单
+			</button>
+		</view>
 		<view v-else-if="page === '05'" class="page-body success-body">
 			<view class="success-symbol"
 				><view
@@ -23,11 +33,23 @@
 						name="check"
 						color="white"
 						:size="57" /></view></view
-			><text class="success-title">支付成功</text
+			><text class="success-title">{{
+				status === "refunded"
+					? "已退款"
+					: status === "refunding"
+						? "退款处理中"
+						: "支付成功"
+			}}</text
 			><text class="success-amount"
 				><text class="success-currency">¥</text
 				>{{ Number(orderTotal(currentOrder)).toFixed(2) }}</text
-			><text class="success-subtitle">订单已提交，等待食堂接单</text>
+			><text class="success-subtitle">{{
+				DESIGN_MODE
+					? "订单已提交，等待食堂接单"
+					: (currentOrder.paymentMode === "demo"
+							? "演示订单 · "
+							: "") + STATUS[status]
+			}}</text>
 			<view class="card success-receipt"
 				><view class="card-heading"
 					><text>{{ currentOrder.room }} 包厢</text
@@ -54,6 +76,7 @@
 			><button class="outline-button" @click="go('01')">继续点餐</button>
 		</view>
 		<view v-else-if="page === '06'" class="page-body orders-body">
+			<OrderPages />
 			<view class="filters"
 				><button
 					v-for="tab in customerFilters"
@@ -120,6 +143,12 @@
 				>
 				<view class="order-actions"
 					><button
+						v-if="!DESIGN_MODE && order.status === 'unpaid'"
+						class="text-button"
+						@click="cancel(order)"
+					>
+						取消订单</button
+					><button
 						:class="
 							order.status === 'unpaid'
 								? 'primary-button'
@@ -183,7 +212,13 @@
 										? "食堂收到订单后将尽快制作"
 										: status === "preparing"
 											? "食堂正在为你制作餐食"
-											: `餐食正在送往 ${currentOrder.room} 包厢`
+											: status === "cancelled"
+												? "订单已取消，不会安排制作"
+												: status === "refunding"
+													? "退款处理中，请耐心等待"
+													: status === "refunded"
+														? "餐费已原路退回"
+														: `餐食正在送往 ${currentOrder.room} 包厢`
 						}}</text></view
 					></view
 				><text v-if="completed" class="delivered-time"
@@ -195,7 +230,14 @@
 					}}
 					确认送达</text
 				><ProgressSteps
-					v-if="status !== 'unpaid' || completed"
+					v-if="
+						[
+							'pending',
+							'preparing',
+							'delivering',
+							'completed',
+						].includes(status)
+					"
 					:current="
 						completed
 							? 3
@@ -247,7 +289,12 @@
 						}}{{ currentOrder.id }}</text
 					></view
 				><view class="info-row"
-					><text>支付方式</text><text>微信支付</text></view
+					><text>支付方式</text
+					><text>{{
+						currentOrder.paymentMode === "demo"
+							? "演示支付（未扣款）"
+							: "微信支付"
+					}}</text></view
 				><view class="info-row"
 					><text>收款方</text><text>KTV 商户</text></view
 				></view
@@ -280,6 +327,7 @@
 import { computed, ref, provide } from "vue";
 provide("artboard", 2);
 import AppShell from "../components/AppShell.vue";
+import OrderPages from "../components/OrderPages.vue";
 import AppIcon from "../components/AppIcon.vue";
 import FoodImage from "../components/FoodImage.vue";
 import ItemList from "../components/ItemList.vue";
@@ -292,15 +340,35 @@ import {
 	persist,
 	DESIGN_MODE,
 	emptyOrder,
+	cancelOrder,
 } from "../common/store";
 import { STATUS } from "../common/domain.mjs";
-import { go } from "../common/pages";
+import { go, toast } from "../common/pages";
+import { useOrderFilter } from "../common/useOrderFilter";
 const props = defineProps({ page: String, query: Object });
 provide(
 	"referencePage",
 	computed(() => props.page),
 );
 const filter = ref("all");
+useOrderFilter("customer", () =>
+	props.page === "06" ? { filter: filter.value } : {},
+);
+function cancel(order) {
+	uni.showModal({
+		title: "取消订单",
+		content: "确认取消这笔未付款订单？",
+		async success(result) {
+			if (!result.confirm) return;
+			try {
+				await cancelOrder(order.id);
+				toast("订单已取消");
+			} catch (error) {
+				toast(error.message);
+			}
+		},
+	});
+}
 const customerFilters = [
 	{ key: "all", label: "全部" },
 	{ key: "unpaid", label: "待付款" },
@@ -310,6 +378,9 @@ const customerFilters = [
 const currentOrder = computed(
 	() =>
 		state.orders.find((order) => order.id === props.query?.id) ||
+		(state.orderDetail?.id === props.query?.id
+			? state.orderDetail
+			: null) ||
 		(!DESIGN_MODE && props.query?.id ? emptyOrder : activeOrder.value),
 );
 const status = computed(() => currentOrder.value.status);

@@ -3,12 +3,12 @@ const fs = require("node:fs/promises"),
 	assert = require("node:assert/strict");
 (async () => {
 	const access = JSON.parse(
-		(await fs.readFile(".local/access.json", "utf8")).replace(
+		(await fs.readFile(process.env.KTV_TEST_ACCESS || ".local/access.json", "utf8")).replace(
 			/^\uFEFF/,
 			"",
 		),
 	);
-	const browser = await chromium.launch(),
+	const browser = await chromium.launch({args:["--renderer-process-limit=2"]}),
 		contexts = await Promise.all(
 			[1, 2].map(() =>
 				browser.newContext({ viewport: { width: 390, height: 844 } }),
@@ -73,7 +73,8 @@ const fs = require("node:fs/promises"),
 			.filter({ hasText: "生成并绑定" })
 			.click();
 		await admin.locator(".screen-15:visible").waitFor();
-		await go(customer, "index/index?room=" + roomId);
+		const qr = await api("/rooms/" + roomId + "/qr", adminSession.token, "POST");
+		await go(customer, "index/index?scene=" + qr.scene);
 		await screen(customer).locator(".catalog-product").first().waitFor();
 		assert.match(
 			await screen(customer).locator(".room-chip").innerText(),

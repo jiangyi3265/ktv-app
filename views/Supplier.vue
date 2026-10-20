@@ -132,6 +132,7 @@
 					</button></view
 				></view
 			>
+			<OrderPages />
 			<view v-if="!queue.length" class="empty-state"
 				><AppIcon
 					name="clipboard-check"
@@ -300,6 +301,7 @@ import { computed, ref, watch, provide } from "vue";
 provide("artboard", 3);
 import { onShow, onHide } from "@dcloudio/uni-app";
 import AppShell from "../components/AppShell.vue";
+import OrderPages from "../components/OrderPages.vue";
 import AppIcon from "../components/AppIcon.vue";
 import FoodImage from "../components/FoodImage.vue";
 import ItemList from "../components/ItemList.vue";
@@ -315,6 +317,7 @@ import {
 } from "../common/store";
 import { STATUS, supplierOrder } from "../common/domain.mjs";
 import { go, toast } from "../common/pages";
+import { useOrderFilter } from "../common/useOrderFilter";
 const props = defineProps({ page: String, query: Object });
 provide(
 	"referencePage",
@@ -325,6 +328,9 @@ const filter = ref("pending"),
 	delivered = ref(false),
 	confirmOpen = ref(DESIGN_MODE && props.page === "12");
 const checkedIds = ref(["chicken", "bites"]);
+useOrderFilter("supplier", () =>
+	props.page === "09" ? { filter: filter.value } : {},
+);
 const supplierTabs = [
 	{ key: "pending", label: "待接单" },
 	{ key: "preparing", label: "制作中" },
@@ -359,6 +365,9 @@ const order = computed(
 		visibleSupplierOrders.value.find(
 			(item) => item.id === props.query?.id,
 		) ||
+		(state.orderDetail?.id === props.query?.id
+			? state.orderDetail
+			: null) ||
 		(DESIGN_MODE
 			? fixture.value
 			: { id: "", items: [], status: "", room: "", events: [] }),
@@ -366,7 +375,9 @@ const order = computed(
 watch(
 	() => order.value.id,
 	() => {
-		checkedIds.value = order.value.items.map((item) => item.id);
+		checkedIds.value = DESIGN_MODE
+			? order.value.items.map((item) => item.id)
+			: [];
 	},
 	{ immediate: true },
 );
@@ -413,13 +424,17 @@ const queue = computed(() => [
 		(item) => item.status === filter.value,
 	),
 ]);
-const pendingCount = computed(
-	() =>
-		visibleSupplierOrders.value.filter((item) => item.status === "pending")
-			.length + (DESIGN_MODE && showNotice.value ? 1 : 0),
+const pendingCount = computed(() =>
+	!DESIGN_MODE
+		? state.orderCounts.pending || 0
+		: visibleSupplierOrders.value.filter(
+				(item) => item.status === "pending",
+			).length + (DESIGN_MODE && showNotice.value ? 1 : 0),
 );
 const newestPending = computed(() =>
-	visibleSupplierOrders.value.find((item) => item.status === "pending"),
+	DESIGN_MODE
+		? visibleSupplierOrders.value.find((item) => item.status === "pending")
+		: state.orderAlerts[0],
 );
 function openOrder(item) {
 	go(
@@ -508,10 +523,14 @@ function playNotice() {
 }
 watch(
 	() =>
-		visibleSupplierOrders.value.filter((item) => item.status === "pending")
-			.length,
-	(count, previous) => {
-		if (count > previous) {
+		(DESIGN_MODE
+			? visibleSupplierOrders.value.filter(
+					(item) => item.status === "pending",
+				)
+			: state.orderAlerts
+		).map((item) => item.id),
+	(ids, previous = []) => {
+		if (ids.some((id) => !previous.includes(id))) {
 			showNotice.value = true;
 			playNotice();
 		}

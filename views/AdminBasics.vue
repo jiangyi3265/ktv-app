@@ -119,9 +119,19 @@
 			<view class="card qr-card"
 				><text class="qr-room">{{ state.selectedRoom }} 包厢</text
 				><text class="qr-subtitle">扫码即可点餐</text
-				><FoodImage name="qr" class="room-qr" /><text class="qr-label"
-					>包厢专属点餐码</text
-				></view
+				><FoodImage
+					v-if="DESIGN_MODE"
+					name="qr"
+					class="room-qr"
+				/><image
+					v-else-if="qrImage"
+					:src="qrImage"
+					class="room-qr"
+					mode="aspectFit"
+				/><text v-else class="muted">{{
+					qrError || "正在生成二维码…"
+				}}</text
+				><text class="qr-label">包厢专属点餐码</text></view
 			>
 			<view class="card binding-card"
 				><view class="between"
@@ -137,7 +147,27 @@
 					></view
 				></view
 			>
-			<button class="primary-button" @click="saveQR">保存二维码</button
+			<view v-if="!DESIGN_MODE" class="filters"
+				><button
+					class="filter"
+					:class="{ active: qrType === 'h5' }"
+					@click="qrType = 'h5'"
+				>
+					网页点餐码</button
+				><button
+					class="filter"
+					:class="{ active: qrType === 'mini' }"
+					@click="qrType = 'mini'"
+				>
+					微信小程序码
+				</button></view
+			>
+			<button
+				class="primary-button"
+				:disabled="!DESIGN_MODE && !qrImage"
+				@click="saveQR"
+			>
+				保存二维码</button
 			><button class="text-button qr-regenerate" @click="regenerateQR">
 				重新生成</button
 			><text class="qr-demo-note">二维码为设计示意</text>
@@ -303,9 +333,34 @@ import {
 	saveProduct as commitProduct,
 	saveRoom as commitRoom,
 	saveImage,
+	roomQR,
 } from "../common/store";
 import { go, toast } from "../common/pages";
 const props = defineProps({ page: String, query: Object });
+const newProductId = ref(
+	"food-" + Date.now() + "-" + Math.random().toString(36).slice(2),
+);
+const qrImage = ref(""),
+	qrError = ref(""),
+	qrType = ref("h5");
+let qrRequest = 0;
+async function loadQR(rotate = false) {
+	if (DESIGN_MODE || props.page !== "15" || !connection.ready) return;
+	const epoch = ++qrRequest;
+	qrImage.value = "";
+	qrError.value = "";
+	try {
+		const result = await roomQR(state.selectedRoom, rotate, qrType.value);
+		if (epoch === qrRequest) qrImage.value = result.image;
+	} catch (error) {
+		if (epoch === qrRequest) qrError.value = error.message;
+	}
+}
+watch(
+	() => [state.selectedRoom, connection.ready, qrType.value],
+	() => loadQR(),
+	{ immediate: true },
+);
 const titles = {
 	13: "KTV 管理",
 	14: "包厢管理",
@@ -470,14 +525,40 @@ function chooseRoom() {
 	});
 }
 function saveQR() {
-	toast("当前是示意码，真实包厢码需接入服务端生成");
+	if (!qrImage.value) return;
+	// #ifdef H5
+	const link = document.createElement("a");
+	link.href = qrImage.value;
+	link.download = `${state.selectedRoom}-${qrType.value}.${qrImage.value.startsWith("data:image/jpeg") ? "jpg" : "png"}`;
+	link.click();
+	// #endif
+	// #ifdef MP-WEIXIN
+	const filePath =
+		wx.env.USER_DATA_PATH +
+		"/ktv-room-code." +
+		(qrImage.value.startsWith("data:image/jpeg") ? "jpg" : "png");
+	uni.getFileSystemManager().writeFile({
+		filePath,
+		data: qrImage.value.split(",")[1],
+		encoding: "base64",
+		success() {
+			uni.saveImageToPhotosAlbum({
+				filePath,
+				success: () => toast("二维码已保存"),
+				fail: () => toast("保存失败，请在设置中允许保存到相册"),
+			});
+		},
+		fail: () => toast("二维码保存失败，请重试"),
+	});
+	// #endif
 }
 function regenerateQR() {
 	uni.showModal({
-		title: "包厢二维码",
-		content:
-			"当前展示的是设计示意二维码。接入小程序码生成接口后，可为各包厢生成有效点餐码。",
-		showCancel: false,
+		title: "重新生成包厢二维码",
+		content: "原二维码将失效，需要重新打印张贴。确认继续？",
+		success: (result) => {
+			if (result.confirm) loadQR(true);
+		},
 		confirmColor: "#f57636",
 	});
 }
@@ -525,7 +606,7 @@ async function saveProduct() {
 		try {
 			await commitProduct({
 				...product,
-				id: existing?.id || "food-" + Date.now(),
+				id: existing?.id || newProductId.value,
 				version: form.version || 0,
 			});
 			toast("餐品已保存");

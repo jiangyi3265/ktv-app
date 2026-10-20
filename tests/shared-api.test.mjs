@@ -5,7 +5,7 @@ const base = process.env.KTV_TEST_API || "http://127.0.0.1:8080/ktv-api";
 const access = JSON.parse(
 	(
 		await fs.readFile(
-			new URL("../.local/access.json", import.meta.url),
+			process.env.KTV_TEST_ACCESS || new URL("../.local/access.json", import.meta.url),
 			"utf8",
 		)
 	).replace(/^\uFEFF/, ""),
@@ -35,10 +35,12 @@ test("shared API: ownership, supplier privacy, transitions, concurrency and pers
 			data: access.supplier,
 		});
 	const initial = await call("/state", { token: admin.token });
+	const qr = await call('/rooms/A08/qr', { token: admin.token, method: 'POST' });
 	assert(!JSON.stringify(initial).includes("passwordHash"));
 	await call("/state", { status: 401 });
 	const data = {
 		room: "A08",
+		scene: qr.scene,
 		requestKey: "api-" + Date.now(),
 		items: [
 			{ id: "chicken", quantity: 2 },
@@ -137,13 +139,9 @@ test("shared API: ownership, supplier privacy, transitions, concurrency and pers
 			method: "PUT",
 			token: admin.token,
 			data: { ...account, deliver: false },
+			status: 409,
 		});
-		await call("/orders/" + order.id + "/transition", {
-			method: "POST",
-			token: supplier.token,
-			data: { status: "completed" },
-			status: 403,
-		});
+		assert.equal((await call('/state', { token: supplier.token })).accounts[0].deliver, true);
 	} finally {
 		const latest = (
 			await call("/state", { token: admin.token })

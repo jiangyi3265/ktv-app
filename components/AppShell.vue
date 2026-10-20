@@ -46,7 +46,7 @@
 		>
 			<!-- #ifdef H5 -->
 			<view class="status-bar"
-				><text>21:08</text
+				><text>{{ DESIGN_MODE ? '21:08' : clockText }}</text
 				><view class="status-icons"
 					><AppIcon name="antenna-bars-5" :size="17" /><AppIcon
 						name="wifi"
@@ -147,7 +147,7 @@
 	</view>
 </template>
 <script setup>
-import { computed, watch } from "vue";
+import { computed, watch, ref, onUnmounted } from "vue";
 import { onShow } from "@dcloudio/uni-app";
 import ConnectionGate from "./ConnectionGate.vue";
 import {
@@ -170,6 +170,9 @@ const props = defineProps({
 	align: { type: String, default: "center" },
 });
 const statusHeight = uni.getSystemInfoSync().statusBarHeight || 0;
+const clockText = ref(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
+const clockTimer = setInterval(() => { clockText.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }); }, 30000);
+onUnmounted(() => clearInterval(clockTimer));
 const role = computed(() =>
 	Number(props.page) <= 8
 		? "customer"

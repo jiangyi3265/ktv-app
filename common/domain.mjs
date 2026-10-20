@@ -4,6 +4,9 @@ export const STATUS = {
 	preparing: "制作中",
 	delivering: "配送中",
 	completed: "已完成",
+	cancelled: "已取消",
+	refunding: "退款中",
+	refunded: "已退款",
 };
 
 export function totalCents(items) {

@@ -15,13 +15,14 @@ export function request(path, { method = "GET", data, token } = {}) {
 				...(token ? { "X-KTV-Token": token } : {}),
 			},
 			success(response) {
-				if (response.statusCode >= 200 && response.statusCode < 300)
+				if (response.statusCode >= 200 && response.statusCode < 300 &&
+					!(response.data?.code && response.data.code !== 200))
 					resolve(response.data);
 				else {
 					const error = new Error(
-						response.data?.message || "服务暂不可用，请稍后重试",
+						response.data?.message || response.data?.msg || "服务暂不可用，请稍后重试",
 					);
-					error.status = response.statusCode;
+					error.status = response.statusCode >= 400 ? response.statusCode : response.data.code;
 					reject(error);
 				}
 			},
@@ -41,7 +42,7 @@ export function uploadImage(filePath, token) {
 			success(response) {
 				try {
 					const data = JSON.parse(response.data);
-					if (response.statusCode >= 400)
+					if (response.statusCode >= 400 || !data.url)
 						throw new Error(data.message || "图片上传失败");
 					resolve(data.url);
 				} catch (error) {

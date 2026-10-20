@@ -121,6 +121,7 @@ import {
 	completeDemoPayment,
 	DESIGN_MODE,
 	connection,
+	payWechat,
 } from "../common/store";
 import { money, totalCents } from "../common/domain.mjs";
 import { go, back, toast } from "../common/pages";
@@ -138,7 +139,7 @@ const paymentOrder = computed(() => {
 				(order) =>
 					order.id === props.query.id &&
 					order.customerId === state.customerId,
-			) || null
+			) || (state.orderDetail?.id === props.query.id ? state.orderDetail : null)
 		);
 	}
 	return activeOrder.value.status === "unpaid" &&
@@ -166,7 +167,7 @@ async function openPayment() {
 		paying.value = false;
 	}
 }
-function pay() {
+async function pay() {
 	if (paying.value || !items.value.length) return;
 	const selectedOrder = paymentOrder.value;
 	if (selectedOrder?.paid) {
@@ -174,6 +175,15 @@ function pay() {
 		return;
 	}
 	paying.value = true;
+	if (!DESIGN_MODE && connection.wechatPayment) {
+		try {
+			const order = selectedOrder || await createUnpaidOrder();
+			await payWechat(order.id);
+			go("05", { id: order.id });
+		} catch (error) { toast(error.message); }
+		finally { paying.value = false; }
+		return;
+	}
 	if (!DESIGN_MODE && !connection.demoPayment) {
 		paying.value = false;
 		toast("尚未配置微信支付，请联系 KTV");
