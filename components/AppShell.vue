@@ -43,6 +43,7 @@
 		<view
 			class="phone-screen"
 			:class="['screen-' + page, 'board-' + board]"
+			:style="windowStyle"
 		>
 			<!-- #ifdef H5 -->
 			<view class="status-bar"
@@ -56,7 +57,7 @@
 			></view>
 			<!-- #endif -->
 			<!-- #ifndef H5 -->
-			<view :style="{ height: statusHeight + 'px' }" />
+			<view :style="{ height: statusHeight + 'px', flexShrink: 0 }" />
 			<!-- #endif -->
 			<view
 				class="topbar"
@@ -169,7 +170,20 @@ const props = defineProps({
 	contentClass: String,
 	align: { type: String, default: "center" },
 });
-const statusHeight = uni.getSystemInfoSync().statusBarHeight || 0;
+const windowStyle = ref({});
+const statusHeight = ref(0);
+// Mini-program viewport units can include area outside the usable window.
+// Use the native window height while retaining the H5 reference frame.
+// #ifndef H5
+function updateWindow() {
+	const info = uni.getWindowInfo ? uni.getWindowInfo() : uni.getSystemInfoSync();
+	statusHeight.value = info.statusBarHeight || 0;
+	windowStyle.value = { height: info.windowHeight + 'px', minHeight: '0', boxSizing: 'border-box' };
+}
+updateWindow();
+uni.onWindowResize(updateWindow);
+onUnmounted(() => uni.offWindowResize(updateWindow));
+// #endif
 const clockText = ref(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
 const clockTimer = setInterval(() => { clockText.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }); }, 30000);
 onUnmounted(() => clearInterval(clockTimer));

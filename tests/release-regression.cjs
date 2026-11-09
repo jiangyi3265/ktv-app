@@ -1,3 +1,5 @@
+const testApiOrigin = process.env.KTV_TEST_API_ORIGIN || "http://127.0.0.1:8080";
+const testAppOrigin = process.env.KTV_TEST_APP_ORIGIN || "http://127.0.0.1:5174";
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || "playwright");
 const fs = require("node:fs/promises");
 const assert = require("node:assert/strict");
@@ -19,7 +21,7 @@ async function main() {
 	const checks = [],
 		errors = [];
 	async function api(route, token, method = "GET", data, expected = 200) {
-		const r = await fetch("http://127.0.0.1:8080" + route, {
+		const r = await fetch((testApiOrigin + '') + route, {
 			method,
 			headers: {
 				"Content-Type": "application/json",
@@ -37,7 +39,7 @@ async function main() {
 		"/@fs/D:/项目/新项目未完成/ktv/ktv/.local/access.json",
 		"/.env",
 	]) {
-		const r = await fetch("http://127.0.0.1:5174" + url);
+		const r = await fetch((testAppOrigin + '') + url);
 		assert.equal(r.status, 404, url);
 	}
 	checks.push("Private files blocked for plain, encoded, raw and @fs URLs");
@@ -105,7 +107,7 @@ async function main() {
 		checks.push(
 			"PC login, authenticated KTV workspace, products, QR dialog and audit records",
 		);
-		await page.goto("http://127.0.0.1:5174/#/");
+		await page.goto((testAppOrigin + '/#/'));
 		await page.evaluate(
 			({ customer, access }) => {
 				uni.setStorageSync("ktv-session-customer-v1", customer);
@@ -114,7 +116,7 @@ async function main() {
 			{ customer, access: null },
 		);
 		await page.goto(
-			"http://127.0.0.1:5174/#/pages/customer/success?id=" + unpaid.id,
+			(testAppOrigin + '/#/pages/customer/success?id=') + unpaid.id,
 		);
 		await page.reload();
 		await page.getByText("尚未确认支付成功", { exact: true }).waitFor();
@@ -127,7 +129,7 @@ async function main() {
 			fullPage: true,
 		});
 		checks.push("Unpaid order cannot display payment success");
-		await page.goto("http://127.0.0.1:5174/#/pages/admin/products");
+		await page.goto((testAppOrigin + '/#/pages/admin/products'));
 		const screen = () => page.locator(".phone-screen:visible").last();
 		await screen()
 			.locator(".connection-gate input")

@@ -1,3 +1,5 @@
+const testApiOrigin = process.env.KTV_TEST_API_ORIGIN || "http://127.0.0.1:8080";
+const testAppOrigin = process.env.KTV_TEST_APP_ORIGIN || "http://127.0.0.1:5174";
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || "playwright");
 const fs = require("node:fs/promises"),
 	assert = require("node:assert/strict");
@@ -29,7 +31,7 @@ const fs = require("node:fs/promises"),
 	}
 	const screen = (p) => p.locator(".phone-screen:visible").last();
 	const go = async (p, path) => {
-		await p.goto("http://127.0.0.1:5174/#/pages/" + path, {
+		await p.goto((testAppOrigin + "/#/pages/") + path, {
 			waitUntil: "domcontentloaded",
 		});
 		await screen(p).waitFor();
@@ -62,8 +64,8 @@ const fs = require("node:fs/promises"),
 			.waitFor({ state: "hidden" });
 	}
 	try {
-		const apiLogin = await fetch('http://127.0.0.1:8080/ktv-api/sessions/staff', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(access.admin) }).then(r=>r.json());
-		const qr = await fetch('http://127.0.0.1:8080/ktv-api/rooms/A08/qr', { method: 'POST', headers: { 'X-KTV-Token': apiLogin.token } }).then(r=>r.json());
+		const apiLogin = await fetch((testApiOrigin + '/ktv-api/sessions/staff'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(access.admin) }).then(r=>r.json());
+		const qr = await fetch((testApiOrigin + '/ktv-api/rooms/A08/qr'), { method: 'POST', headers: { 'X-KTV-Token': apiLogin.token } }).then(r=>r.json());
 		await go(customer, "index/index?scene=" + qr.scene);
 		await waitText(screen(customer).locator('.room-chip'), /A08/);
 		await screen(customer).locator(".catalog-product").first().waitFor();

@@ -19,7 +19,7 @@ export const state = reactive({
 	accounts: [],
 	foreground: true,
 	activeOrderId: local.activeOrderId || "",
-	selectedRoom: local.selectedRoom || "A08",
+	selectedRoom: local.selectedRoom || "",
 	selectedProduct: local.selectedProduct || "chicken",
 	selectedAccount: local.selectedAccount || "A01",
 	sound: local.sound !== false,
@@ -87,6 +87,8 @@ function apply(data, role, epoch) {
 	revision = data.revision;
 	for (const key of ["products", "orders", "rooms", "accounts"])
 		state[key] = data[key];
+	if (role === "admin" && !data.rooms.some((room) => room.id === state.selectedRoom))
+		state.selectedRoom = (data.rooms.find((room) => room.bound) || data.rooms[0])?.id || "";
 	if (role === "customer") state.customerId = data.subject;
 	if (role === "supplier") state.supplierId = data.subject;
 	connection.demoPayment = data.demoPayment;

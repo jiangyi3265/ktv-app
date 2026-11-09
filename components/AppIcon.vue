@@ -7,6 +7,7 @@
 	/>
 </template>
 <script setup>
+defineOptions({ options: { virtualHost: true } });
 import { computed } from "vue";
 const props = defineProps({
 	name: { type: String, default: "chevron-right" },

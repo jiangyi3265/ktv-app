@@ -78,6 +78,7 @@
 					><view class="row"
 						><text v-if="order.paid" class="badge green"
 							>已付款</text
+						><text v-if="order.assignmentRequired" class="badge">待分配食堂</text
 						><text
 							class="badge"
 							:class="{

@@ -76,6 +76,7 @@
 			><button class="outline-button" @click="go('01')">继续点餐</button>
 		</view>
 		<view v-else-if="page === '06'" class="page-body orders-body">
+			<view v-if="!DESIGN_MODE" class="staff-access"><button class="staff-entry text-button" @click="go('09')">食堂登录</button></view>
 			<OrderPages />
 			<view class="filters"
 				><button

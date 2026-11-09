@@ -39,6 +39,15 @@
 	display: block;
 	margin-top: 4px;
 }
+.staff-access {
+	display: flex;
+	justify-content: flex-end;
+}
+.staff-access .staff-entry {
+	min-height: 44px;
+	padding: 0 4px;
+	font-size: 13px;
+}
 .catalog-hero {
 	width: 100% !important;
 	height: 145px !important;

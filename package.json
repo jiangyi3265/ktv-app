@@ -1,6 +1,6 @@
 {
   "name": "ktv-room-dining",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "scripts": {
     "dev": "node scripts/uni.mjs",
@@ -33,6 +33,7 @@
     "vite": "5.4.21"
   },
   "overrides": {
+    "follow-redirects": "1.16.3",
     "@dcloudio/vite-plugin-uni": {
       "vite": "$vite"
     },

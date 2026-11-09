@@ -1,3 +1,5 @@
+const testApiOrigin = process.env.KTV_TEST_API_ORIGIN || "http://127.0.0.1:8080";
+const testAppOrigin = process.env.KTV_TEST_APP_ORIGIN || "http://127.0.0.1:5174";
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || "playwright");
 const fs = require("node:fs/promises"),
 	assert = require("node:assert/strict");
@@ -22,7 +24,7 @@ const fs = require("node:fs/promises"),
 	}
 	const screen = (p) => p.locator(".phone-screen:visible").last(),
 		go = (p, route) =>
-			p.goto("http://127.0.0.1:5174/#/pages/" + route, {
+			p.goto((testAppOrigin + "/#/pages/") + route, {
 				waitUntil: "domcontentloaded",
 			});
 	const click = (p, label) =>
@@ -32,7 +34,7 @@ const fs = require("node:fs/promises"),
 			.last()
 			.click();
 	const api = async (path, token, method = "GET", data) => {
-		const r = await fetch("http://127.0.0.1:8080/ktv-api" + path, {
+		const r = await fetch((testApiOrigin + "/ktv-api") + path, {
 			method,
 			headers: {
 				"Content-Type": "application/json",

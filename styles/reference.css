@@ -1451,6 +1451,14 @@
 	font-size: 13px;
 }
 
+/* Native safe-area padding must be added to, not taken from, tab content. */
+/* #ifndef H5 */
+.phone-screen .bottom-nav {
+	height: calc(72px + env(safe-area-inset-bottom));
+	min-height: calc(72px + env(safe-area-inset-bottom));
+}
+/* #endif */
+
 .phone-screen .overlay {
 	background: rgba(15, 18, 18, 0.62);
 }

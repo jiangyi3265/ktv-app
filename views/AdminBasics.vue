@@ -170,7 +170,7 @@
 				保存二维码</button
 			><button class="text-button qr-regenerate" @click="regenerateQR">
 				重新生成</button
-			><text class="qr-demo-note">二维码为设计示意</text>
+			><text v-if="DESIGN_MODE" class="qr-demo-note">二维码为设计示意</text>
 		</view>
 		<view v-else-if="page === '16'" class="page-body">
 			<view class="search-field"
@@ -342,7 +342,7 @@ const newProductId = ref(
 );
 const qrImage = ref(""),
 	qrError = ref(""),
-	qrType = ref("h5");
+	qrType = ref("mini");
 let qrRequest = 0;
 async function loadQR(rotate = false) {
 	if (DESIGN_MODE || props.page !== "15" || !connection.ready) return;

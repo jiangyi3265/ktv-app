@@ -13,6 +13,7 @@
 	/></view>
 </template>
 <script setup>
+defineOptions({ options: { virtualHost: true } });
 import { computed, inject, unref } from "vue";
 import { foodCrop } from "../common/artwork.mjs";
 import { apiUrl } from "../common/api";

@@ -1,5 +1,6 @@
 <template>
 	<view class="card" v-if="order?.id">
+		<view v-if="order.assignmentRequired" class="form-error">已付款，当前没有可接单食堂，请分配食堂或处理退款。</view>
 		<text class="card-heading">订单处理</text>
 		<button
 			v-if="order.status === 'unpaid'"
