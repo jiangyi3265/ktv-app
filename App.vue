@@ -5,10 +5,12 @@ import {
 	connection,
 	activate,
 	pauseSync,
+	enterRoom,
 } from "./common/store";
 export default {
-	onShow() {
+	onShow(options) {
 		state.foreground = true;
+		if (!DESIGN_MODE) enterRoom(options || {}, true);
 		if (!DESIGN_MODE && connection.role) activate(connection.role);
 	},
 	onHide() {

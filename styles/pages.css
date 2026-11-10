@@ -197,6 +197,8 @@
 	border-color: var(--orange);
 }
 .cart-room {
+	width: 100%;
+	text-align: left;
 	background: #f2f3f3;
 	border-radius: 12px;
 	display: flex;
@@ -214,6 +216,8 @@
 
 /* Checkout.vue */
 .destination {
+	width: 100%;
+	text-align: left;
 	display: flex;
 	align-items: center;
 	gap: 12px;

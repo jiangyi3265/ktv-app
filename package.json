@@ -1,6 +1,6 @@
 {
   "name": "ktv-room-dining",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "scripts": {
     "dev": "node scripts/uni.mjs",
@@ -10,7 +10,7 @@
     "build:h5": "node scripts/uni.mjs build",
     "dev:mp-weixin": "node scripts/uni.mjs -p mp-weixin",
     "build:mp-weixin": "node scripts/uni.mjs build -p mp-weixin",
-    "test": "node --test tests/domain.test.mjs",
+    "test": "node --test tests/domain.test.mjs tests/room-entry.test.mjs",
     "test:shared-api": "node --test tests/shared-api.test.mjs",
     "test:shared-browser": "node tests/shared-browser.cjs",
     "test:shared-resilience": "node tests/shared-resilience.cjs"

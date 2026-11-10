@@ -39,6 +39,8 @@ export const {
 	rotatePassword,
 	roomQR,
 	scanRoom,
+	scanRoomCode,
+	enterRoom,
 	payWechat,
 	readiness,
 	changeOrderPage,

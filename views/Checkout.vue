@@ -1,14 +1,14 @@
 <template>
 	<AppShell :page="page" title="确认订单" back-to="01">
 		<view class="page-body">
-			<view class="destination"
+			<button class="destination" :disabled="state.roomLoading" @click="page !== '04' && scanRoomCode()"
 				><AppIcon name="map-pin" filled color="white" :size="37" /><view
 					class="fill stack"
 					><text class="destination-title"
-						>{{ destinationRoom }} 包厢</text
-					><text class="small">餐食将送到当前包厢</text></view
+						>{{ state.roomLoading ? '正在识别包厢…' : destinationRoom ? destinationRoom + ' 包厢' : '请先扫描包厢码' }}</text
+					><text class="small">{{ destinationRoom ? '餐食将送到当前包厢' : '点击扫描包厢专属点餐码' }}</text></view
 				><AppIcon name="chevron-right" color="white" :size="23"
-			/></view>
+			/></button>
 			<view v-if="items.length" class="card"
 				><ItemList :items="items"
 			/></view>
@@ -49,10 +49,10 @@
 					><text class="price-currency">¥</text>{{ total }}</text
 				><button
 					class="primary-button"
-					:disabled="!items.length || alreadyPaid"
+					:disabled="!items.length || alreadyPaid || paying || state.roomLoading"
 					@click="openPayment"
 				>
-					确认并支付
+					{{ state.roomLoading ? '正在识别…' : !DESIGN_MODE && !destinationRoom ? '先扫码选包厢' : '确认并支付' }}
 				</button></view
 			></template
 		>
@@ -122,6 +122,7 @@ import {
 	DESIGN_MODE,
 	connection,
 	payWechat,
+	scanRoomCode,
 } from "../common/store";
 import { money, totalCents } from "../common/domain.mjs";
 import { go, back, toast } from "../common/pages";
@@ -157,6 +158,7 @@ const items = computed(() =>
 const total = computed(() => money(totalCents(items.value)));
 async function openPayment() {
 	if (paying.value) return;
+	if (!DESIGN_MODE && !state.room) { await scanRoomCode(); return; }
 	paying.value = true;
 	try {
 		const order = await createUnpaidOrder();

@@ -16,10 +16,10 @@
 			><!-- #endif --></template
 		>
 		<view class="catalog-intro">
-			<view class="room-chip"
+			<button class="room-chip" aria-label="扫描包厢点餐码" :disabled="state.roomLoading" @click="scanRoomCode"
 				><AppIcon name="map-pin" filled :size="19" /><text
-					>{{ state.room ? state.room + ' 包厢' : '请扫描包厢点餐码' }}</text
-				><text v-if="state.room" class="text-green">· 已识别</text></view
+					>{{ state.roomLoading ? '正在识别包厢…' : state.room ? state.room + ' 包厢' : '点击扫描包厢点餐码' }}</text
+				><text v-if="state.room" class="text-green">· 已识别</text></button
 			>
 			<text class="catalog-heading">好好吃饭，尽兴开唱</text>
 			<text class="catalog-subtitle">美味相伴，歌声更动人</text>
@@ -107,10 +107,10 @@
 					></button
 				><button
 					class="primary-button"
-					:disabled="!cartCount"
-					@click="go('03')"
+					:disabled="!cartCount || state.roomLoading"
+					@click="checkout"
 				>
-					去结算
+					{{ state.roomLoading ? '正在识别…' : !DESIGN_MODE && !state.room ? '先扫码选包厢' : '去结算' }}
 				</button></view
 			></template
 		>
@@ -175,14 +175,14 @@
 							去看看菜单
 						</button></view
 					>
-					<view class="cart-room"
+					<button class="cart-room" @click="scanRoomCode"
 						><AppIcon
 							name="map-pin"
 							color="green"
 							:size="20" /><text class="fill"
-							>送至 {{ state.room }} 包厢</text
+							>{{ state.room ? '送至 ' + state.room + ' 包厢' : '点击扫描包厢点餐码' }}</text
 						><AppIcon name="chevron-right" color="gray" :size="19"
-					/></view>
+						/></button>
 					<view class="between cart-total"
 						><text>共 {{ cartCount }} 份</text
 						><text class="price"
@@ -192,10 +192,10 @@
 					>
 					<button
 						class="primary-button full-width"
-						:disabled="!cartCount"
-						@click="go('03')"
+						:disabled="!cartCount || state.roomLoading"
+						@click="checkout"
 					>
-						去结算
+						{{ state.roomLoading ? '正在识别…' : !DESIGN_MODE && !state.room ? '先扫码选包厢' : '去结算' }}
 					</button>
 				</view>
 			</view>
@@ -217,6 +217,8 @@ import {
 	changeQuantity,
 	clearCart,
 	persist,
+	DESIGN_MODE,
+	scanRoomCode,
 } from "../common/store";
 const props = defineProps({ page: String, query: Object });
 provide(
@@ -226,6 +228,10 @@ provide(
 const cartOpen = ref(props.page === "02");
 const search = ref("");
 const selectedCategory = ref("推荐");
+async function checkout() {
+	if (!DESIGN_MODE && !state.room && !(await scanRoomCode())) return;
+	go("03");
+}
 watch(
 	() => props.query,
 	(value) => {

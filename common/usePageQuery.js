@@ -1,6 +1,6 @@
 import { ref } from "vue";
 import { onLoad, onShow } from "@dcloudio/uni-app";
-import { DESIGN_MODE, scanRoom, state, connection, refresh } from "./store";
+import { DESIGN_MODE, enterRoom, state, connection, refresh } from "./store";
 
 // uni-app keeps visited pages alive. Refresh query options when a page is shown
 // again so order IDs and filters cannot remain attached to an earlier visit.
@@ -12,10 +12,13 @@ export function usePageQuery() {
 			state.activeOrderId = options.id;
 			if (connection.ready) refresh().catch(() => {});
 		}
-		if (!DESIGN_MODE && options?.scene)
-			scanRoom(decodeURIComponent(options.scene)).catch((error) =>
-				uni.showToast({ title: error.message, icon: "none" }),
-			);
+		if (!DESIGN_MODE) {
+			let entry = options || {};
+			// #ifdef H5
+			if (!entry.scene && !entry.q) entry = Object.fromEntries(new URLSearchParams(window.location.search));
+			// #endif
+			enterRoom(entry);
+		}
 	});
 	onShow(() => {
 		const pages = getCurrentPages();
