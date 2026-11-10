@@ -23,6 +23,7 @@
 		:back-to="page !== '09' ? '09' : undefined"
 	>
 		<view v-if="page === '09'" class="page-body supplier-body">
+			<button v-if="!DESIGN_MODE" class="card between ledger-entry" @click="go('23')"><view class="row"><AppIcon name="receipt" color="green" :size="23"/><text>收款记录</text></view><AppIcon name="chevron-right" color="gray" :size="19"/></button>
 			<button
 				v-if="
 					showNotice &&

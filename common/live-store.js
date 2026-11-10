@@ -436,6 +436,12 @@ export const roomQR = (id, rotate = false, type = "h5") =>
 	);
 export const readiness = () =>
 	request("/readiness", { token: session("admin")?.token });
+export function supplierLedger(filters = {}) {
+	const current = session("supplier");
+	if (!current) return Promise.reject(new Error("请先登录食堂账号"));
+	const query = Object.entries(filters).map(([key,value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`).join("&");
+	return request("/finance/ledger?" + query, { token: current.token });
+}
 export const scanRoom = createRoomResolver(state,
 	(scene) => request(`/scan/${encodeURIComponent(scene)}`), persist);
 export async function enterRoom(options, restore = false) {

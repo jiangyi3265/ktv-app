@@ -43,6 +43,7 @@ export const {
 	enterRoom,
 	payWechat,
 	readiness,
+	supplierLedger,
 	changeOrderPage,
 	setOrderFilter,
 } = live;

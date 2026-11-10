@@ -73,6 +73,10 @@
 			}
 		},
 		{
+			"path": "pages/supplier/ledger",
+			"style": { "navigationStyle": "custom", "navigationBarTitleText": "收款记录", "disableScroll": true }
+		},
+		{
 			"path": "pages/supplier/detail",
 			"style": {
 				"navigationStyle": "custom",

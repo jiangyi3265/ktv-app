@@ -21,6 +21,7 @@ export const designPages = [
 	["20", "外包账号", "pages/admin/accounts", "订单与权限"],
 	["21", "权限与订单分配", "pages/admin/permissions", "订单与权限"],
 	["22", "支付配置与状态记录", "pages/admin/payment", "订单与权限"],
+	["23", "收款记录", "pages/supplier/ledger", "食堂与配送"],
 ].map(([id, title, path, group]) => ({ id, title, path, group }));
 
 export function go(id, query = {}) {

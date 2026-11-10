@@ -169,6 +169,7 @@ const props = defineProps({
 	backTo: String,
 	contentClass: String,
 	align: { type: String, default: "center" },
+	accountRole: String,
 });
 const windowStyle = ref({});
 const statusHeight = ref(0);
@@ -188,11 +189,11 @@ const clockText = ref(new Date().toLocaleTimeString([], { hour: '2-digit', minut
 const clockTimer = setInterval(() => { clockText.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }); }, 30000);
 onUnmounted(() => clearInterval(clockTimer));
 const role = computed(() =>
-	Number(props.page) <= 8
+	props.accountRole || (Number(props.page) <= 8
 		? "customer"
 		: Number(props.page) <= 12
 			? "supplier"
-			: "admin",
+			: "admin"),
 );
 watch(
 	role,
