@@ -53,8 +53,7 @@ async function main() {
 	await waitScreen("03");
 	assert.match(await screen().locator(".checkout-dock").innerText(), /86/);
 	await click("确认并支付");
-	await waitScreen("04");
-	await click("确认支付");
+	assert.equal(await screen().locator(".payment-sheet").count(), 0);
 	await page.getByText("模拟成功", { exact: true }).click();
 	await waitScreen("05");
 	assert.match(

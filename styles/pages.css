@@ -1319,3 +1319,9 @@
 .config-dialog .dialog-copy {
 	text-align: left;
 }
+
+/* Keep long menu names clear of the price, add button and management switches. */
+.catalog-product-info .item-name { overflow: hidden; text-overflow: ellipsis; }
+.product-info { min-width: 0; }
+.product-info .bold { max-width: 100%; white-space: normal; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.product-actions { flex-shrink: 0; }

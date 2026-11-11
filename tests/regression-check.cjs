@@ -55,19 +55,19 @@ async function main() {
 				await go("index/index?room=B03");
 				await go("customer/payment?id=0088");
 				assert.match(
-					await screen().locator(".payment-value").innerText(),
-					/38\.00/,
+					await screen().locator(".checkout-dock .price").innerText(),
+					/38/,
 				);
 				assert.match(
 					await screen().locator(".destination-title").innerText(),
 					/A08/,
 				);
-				await click("确认支付");
+				await click("确认并支付");
 				await page.getByText("模拟成功", { exact: true }).click();
 				await screen().locator(".success-amount").waitFor();
 				assert.match(
 					await screen().locator(".success-amount").innerText(),
-					/38\.00/,
+					/38/,
 				);
 				await go("index/index");
 				assert.match(
@@ -85,13 +85,11 @@ async function main() {
 			async ({ go, screen }) => {
 				await go("customer/payment?id=0086");
 				assert.match(
-					await screen().locator(".wechat-button").innerText(),
-					/查看订单/,
+					await screen().locator(".checkout-dock .primary-button").innerText(),
+					/已付款/,
 				);
-				assert.match(
-					await screen().locator(".payment-caption").innerText(),
-					/已支付/,
-				);
+				assert.equal(await screen().locator(".payment-sheet").count(), 0);
+                assert.equal(await screen().locator(".checkout-dock .primary-button").getAttribute("disabled"), "true");
 			},
 		],
 		[

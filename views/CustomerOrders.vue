@@ -22,7 +22,7 @@
 		>
 			<text>尚未确认支付成功</text
 			><text>请查看订单状态，避免重复付款</text>
-			<button class="primary-button" @click="openOrder(currentOrder)">
+			<button class="primary-button" @click="go('07', { id: currentOrder.id })">
 				查看订单
 			</button>
 		</view>
@@ -70,6 +70,7 @@
 			>
 			<button
 				class="primary-button"
+				:disabled="paying"
 				@click="go('07', { id: currentOrder.id })"
 			>
 				查看订单</button
@@ -146,6 +147,7 @@
 					><button
 						v-if="!DESIGN_MODE && order.status === 'unpaid'"
 						class="text-button"
+						:disabled="paying"
 						@click="cancel(order)"
 					>
 						取消订单</button
@@ -156,6 +158,7 @@
 								: 'outline-button'
 						"
 						class="button-sm"
+						:disabled="paying"
 						@click="openOrder(order)"
 					>
 						{{
@@ -315,6 +318,7 @@
 			#footer
 			><button
 				class="primary-button"
+				:disabled="paying"
 				@click="
 					status === 'unpaid' ? openOrder(currentOrder) : go('01')
 				"
@@ -344,6 +348,8 @@ import {
 	cancelOrder,
 } from "../common/store";
 import { STATUS } from "../common/domain.mjs";
+import { usePayment } from "../common/usePayment";
+const { paying, pay } = usePayment();
 import { go, toast } from "../common/pages";
 import { useOrderFilter } from "../common/useOrderFilter";
 const props = defineProps({ page: String, query: Object });
@@ -425,13 +431,13 @@ const events = computed(() =>
 					{ time: "20:42", label: "支付成功" },
 				],
 );
-function openOrder(order) {
+async function openOrder(order) {
+	if (paying.value) return;
 	state.activeOrderId = order.id;
 	persist();
+	if (order.status === "unpaid") { await pay(() => order); return; }
 	go(
-		order.status === "unpaid"
-			? "04"
-			: order.status === "completed"
+		order.status === "completed"
 				? "08"
 				: "07",
 		{ id: order.id },

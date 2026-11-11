@@ -137,6 +137,9 @@
 					/><text>{{ tab.label }}</text>
 				</button>
 			</view>
+			<!-- #ifndef H5 -->
+			<view v-if="!tabs && $slots.footer && (DESIGN_MODE || connection.ready)" :style="{ height: safeBottom + 'px', flexShrink: 0 }" />
+			<!-- #endif -->
 			<slot v-if="DESIGN_MODE || connection.ready" name="overlay" />
 		</view>
 		<!-- #ifdef H5 -->
@@ -173,12 +176,14 @@ const props = defineProps({
 });
 const windowStyle = ref({});
 const statusHeight = ref(0);
+const safeBottom = ref(0);
 // Mini-program viewport units can include area outside the usable window.
 // Use the native window height while retaining the H5 reference frame.
 // #ifndef H5
 function updateWindow() {
 	const info = uni.getWindowInfo ? uni.getWindowInfo() : uni.getSystemInfoSync();
 	statusHeight.value = info.statusBarHeight || 0;
+	safeBottom.value = info.safeArea ? Math.max(0, info.screenHeight - info.safeArea.bottom) : 0;
 	windowStyle.value = { height: info.windowHeight + 'px', minHeight: '0', boxSizing: 'border-box' };
 }
 updateWindow();

@@ -3,8 +3,8 @@
     "appid" : "__UNI__DB99B42",
     "description" : "KTV 包厢餐食点单与管理",
     "uniStatistics": { "enable": false },
-    "versionName" : "1.0.3",
-    "versionCode" : "103",
+    "versionName" : "1.0.4",
+    "versionCode" : "104",
     "transformPx" : false,
     /* 5+App特有相关 */
     "app-plus" : {
