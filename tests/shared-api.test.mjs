@@ -35,6 +35,7 @@ test("shared API: ownership, supplier privacy, transitions, concurrency and pers
 			data: access.supplier,
 		});
 	const initial = await call("/state", { token: admin.token });
+	assert.equal(initial.demoPayment, true, "Use an isolated demo-payment backend");
 	const qr = await call('/rooms/A08/qr', { token: admin.token, method: 'POST' });
 	assert(!JSON.stringify(initial).includes("passwordHash"));
 	await call("/state", { status: 401 });
@@ -119,6 +120,12 @@ test("shared API: ownership, supplier privacy, transitions, concurrency and pers
 		method: "POST",
 		token: supplier.token,
 		data: { status: "preparing" },
+		status: 400,
+	});
+	await call("/orders/" + order.id + "/transition", {
+		method: "POST",
+		token: supplier.token,
+		data: { status: "preparing", checkedIds: ["chicken", "bites"] },
 	});
 	await call("/orders/" + order.id + "/transition", {
 		method: "POST",

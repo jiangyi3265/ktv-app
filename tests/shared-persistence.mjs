@@ -2,12 +2,13 @@ import assert from "node:assert/strict";
 import fs from "node:fs/promises";
 const root = new URL("../", import.meta.url);
 const access = JSON.parse(
-	(await fs.readFile(new URL(".local/access.json", root), "utf8")).replace(
+	(await fs.readFile(process.env.KTV_TEST_ACCESS || new URL(".local/access.json", root), "utf8")).replace(
 		/^\uFEFF/,
 		"",
 	),
 );
-const base = "http://127.0.0.1:8080/ktv-api";
+const base = process.env.KTV_TEST_API || "http://127.0.0.1:8080/ktv-api";
+const appOrigin = process.env.KTV_TEST_APP_ORIGIN || "http://127.0.0.1:5174";
 const login = await fetch(base + "/sessions/staff", {
 	method: "POST",
 	headers: { "Content-Type": "application/json" },
@@ -20,6 +21,7 @@ const headers = {
 	"Content-Type": "application/json",
 };
 const state = await (await fetch(base + "/state", { headers })).json();
+assert.equal(state.demoPayment, true, "Use an isolated demo-payment backend");
 for (const file of ["shared-api-result.json", "shared-browser-report.json"]) {
 	const expected = JSON.parse(
 		await fs.readFile(new URL("qa/" + file, root), "utf8"),
@@ -73,7 +75,7 @@ try {
 		menu.products.find((p) => p.id === "chicken").customImage,
 		url,
 	);
-	const image = await fetch("http://127.0.0.1:5174" + url);
+	const image = await fetch(appOrigin + url);
 	assert.equal(image.status, 200);
 	assert.match(image.headers.get("content-type"), /image\/png/);
 	await fetch(base + "/session", {

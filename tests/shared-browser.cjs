@@ -65,6 +65,8 @@ const fs = require("node:fs/promises"),
 	}
 	try {
 		const apiLogin = await fetch((testApiOrigin + '/ktv-api/sessions/staff'), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(access.admin) }).then(r=>r.json());
+		const initial = await fetch(testApiOrigin + '/ktv-api/state', { headers: { 'X-KTV-Token': apiLogin.token } }).then(r=>r.json());
+		assert.equal(initial.demoPayment, true, 'Use an isolated demo-payment backend');
 		const qr = await fetch((testApiOrigin + '/ktv-api/rooms/A08/qr'), { method: 'POST', headers: { 'X-KTV-Token': apiLogin.token } }).then(r=>r.json());
 		await go(customer, "index/index?scene=" + qr.scene);
 		await waitText(screen(customer).locator('.room-chip'), /A08/);
@@ -88,17 +90,15 @@ const fs = require("node:fs/promises"),
 			.click();
 		await click(customer, "去结算");
 		await customer.locator(".screen-03:visible").waitFor();
+		const created = customer.waitForResponse(r => r.url().endsWith('/ktv-api/orders') && r.request().method() === 'POST');
 		await click(customer, "确认并支付");
-		await customer.locator(".screen-04:visible").waitFor();
-		const orderId = new URLSearchParams(customer.url().split("?")[1]).get(
-			"id",
-		);
+		const orderId = (await (await created).json()).id;
 		assert(orderId);
+		assert.equal(await customer.locator('.payment-sheet').count(), 0);
 		await waitText(
 			screen(admin).locator(".admin-orders"),
 			new RegExp("#" + orderId),
 		);
-		await click(customer, "确认支付");
 		await customer.getByText("模拟成功", { exact: true }).click();
 		await customer.locator(".screen-05:visible").waitFor();
 		await click(customer, "查看订单");
@@ -112,12 +112,15 @@ const fs = require("node:fs/promises"),
 		await supplier.locator(".screen-10:visible").waitFor();
 		assert(supplier.url().includes("id=" + orderId));
 		assert.doesNotMatch(await screen(supplier).innerText(), /¥|￥|收款/);
-		await click(supplier, "确认接单");
+		await screen(supplier).locator('.check-box').first().waitFor();
+		for (const check of await screen(supplier).locator('.check-box').all()) await check.click();
+		await click(supplier, "确认有货并接单");
 		await supplier.locator(".screen-11:visible").waitFor();
 		await waitText(
 			screen(customer).locator(".order-status-title"),
 			/制作中/,
 		);
+		await screen(supplier).locator('.check-box').first().waitFor();
 		for (const check of await screen(supplier).locator('.check-box').all()) await check.click();
 		await click(supplier, "出餐并开始配送");
 		await supplier.locator(".screen-12:visible").waitFor();
