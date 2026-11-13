@@ -5,13 +5,15 @@
 		:title="
 			page === '09'
 				? '接单工作台'
-				: page === '10'
-					? '订单详情'
-					: page === '11'
-						? '制作中'
-						: delivered
-							? '已送达'
-							: '配送中'
+				: stopped
+					? STATUS[order.status]
+					: page === '10'
+						? '订单详情'
+						: page === '11'
+							? '制作中'
+							: delivered
+								? '已送达'
+								: '配送中'
 		"
 		:subtitle="
 			page === '09'
@@ -164,6 +166,11 @@
 				返回工作台
 			</button></view
 		>
+		<view
+			v-else-if="!DESIGN_MODE && targetPage && targetPage !== page"
+			class="empty-state"
+			><text>正在同步订单进度…</text></view
+		>
 		<view v-else class="page-body supplier-detail">
 			<view
 				v-if="order.status === 'stock_issue'"
@@ -174,7 +181,13 @@
 					>请暂停备货。商家会重新分配、确认补货或处理退款。</text
 				></view
 			>
-			<view v-else-if="page === '10'" class="stock-instruction"
+			<view v-else-if="stopped" class="card stock-message stopped-order"
+				><text class="bold">{{ STATUS[order.status] }}</text
+				><text>请停止备货和配送，联系商家确认。</text></view
+			>
+			<view
+				v-else-if="page === '10' && order.status === 'pending'"
+				class="stock-instruction"
 				><text class="bold">接单前，请先确认全部有货</text
 				><text>逐项核对实物库存及数量，有缺货请先反馈。</text></view
 			>
@@ -183,13 +196,10 @@
 					><view
 						><text class="large-room">{{ order.room }}</text
 						><text class="room-unit">包厢</text></view
-					><text v-if="page !== '12'" class="badge solid">{{
-						order.status === "stock_issue"
-							? "缺货待处理"
-							: page === "10"
-								? "待接单"
-								: "制作中"
-					}}</text
+					><text
+						v-if="page !== '12' || stopped"
+						class="badge solid"
+						>{{ STATUS[order.status] || "订单详情" }}</text
 					><AppIcon
 						v-else-if="delivered"
 						name="circle-check"
@@ -200,17 +210,19 @@
 						name="delivery"
 						class="supplier-bag" /></view
 				><text class="supplier-subtitle">{{
-					page === "10"
-						? "已付款订单 · 等待处理"
-						: page === "11"
-							? DESIGN_MODE
-								? "20:43 已接单"
-								: (order.events?.find(
-										(e) => e.label === "食堂接单",
-									)?.time || "") + " 已接单"
-							: delivered
-								? "餐食已送达 · 订单已完成"
-								: "已出餐 · 正在配送"
+					stopped
+						? "订单已停止备货和配送"
+						: page === "10"
+							? "已付款订单 · 等待处理"
+							: page === "11"
+								? DESIGN_MODE
+									? "20:43 已接单"
+									: (order.events?.find(
+											(e) => e.label === "食堂接单",
+										)?.time || "") + " 已接单"
+								: delivered
+									? "餐食已送达 · 订单已完成"
+									: "已出餐 · 正在配送"
 				}}</text
 				><view v-if="page === '10'" class="supplier-metadata"
 					><view
@@ -227,7 +239,7 @@
 						}}</text></view
 					></view
 				><ProgressSteps
-					v-if="page === '11'"
+					v-if="page === '11' && order.status === 'preparing'"
 					:current="1"
 					:labels="['待接单', '制作中', '配送中', '已完成']"
 					numbered
@@ -247,7 +259,7 @@
 					:prices="false"
 					:checkable="
 						['10', '11'].includes(page) &&
-						order.status !== 'stock_issue'
+						['pending', 'preparing'].includes(order.status)
 					"
 					:checked-ids="checkedIds"
 					@check="toggleCheck"
@@ -266,7 +278,9 @@
 				"
 				:order="order"
 			/>
-			<view v-if="page === '11'" class="packing-note"
+			<view
+				v-if="page === '11' && order.status === 'preparing'"
+				class="packing-note"
 				><AppIcon name="paper-bag" color="orange" :size="67" /><view
 					><text class="bold">出餐前核对数量</text
 					><text class="muted"
@@ -283,7 +297,7 @@
 				><text class="muted">订单已完成，顾客端状态同步更新</text></view
 			>
 		</view>
-		<template v-if="page !== '09' && order.status !== 'stock_issue'" #footer
+		<template v-if="canAct" #footer
 			><button
 				class="primary-button"
 				:disabled="
@@ -337,7 +351,7 @@
 	</AppShell>
 </template>
 <script setup>
-import { computed, ref, watch, provide, onUnmounted } from "vue";
+import { computed, ref, watch, provide, onUnmounted, nextTick } from "vue";
 provide("artboard", 3);
 import { onShow, onHide } from "@dcloudio/uni-app";
 import AppShell from "../components/AppShell.vue";
@@ -361,6 +375,9 @@ import { STATUS, supplierOrder } from "../common/domain.mjs";
 import { go, toast } from "../common/pages";
 import { useOrderFilter } from "../common/useOrderFilter";
 const props = defineProps({ page: String, query: Object });
+let visible = false,
+	advancing = false;
+let redirecting = "";
 provide(
 	"referencePage",
 	computed(() => props.page),
@@ -429,31 +446,54 @@ const allItemsChecked = computed(
 		order.value.items.length > 0 &&
 		order.value.items.every((item) => checkedIds.value.includes(item.id)),
 );
+const stopped = computed(() =>
+	["refunding", "refunded", "cancelled"].includes(order.value.status),
+);
+const targetPage = computed(
+	() =>
+		({
+			pending: "10",
+			stock_issue: "10",
+			preparing: "11",
+			delivering: "12",
+			completed: "12",
+		})[order.value.status],
+);
+const canAct = computed(
+	() =>
+		!!order.value.id &&
+		props.page !== "09" &&
+		props.page === targetPage.value &&
+		order.value.status !== "stock_issue",
+);
+function syncOrderRoute() {
+	if (
+		DESIGN_MODE ||
+		!visible ||
+		advancing ||
+		connection.pending ||
+		!connection.ready ||
+		connection.role !== "supplier" ||
+		props.page === "09" ||
+		!order.value.id
+	)
+		return;
+	const target = targetPage.value;
+	if (target && target !== props.page && redirecting !== target) {
+		redirecting = target;
+		go(target, { id: order.value.id }, { replace: true });
+	}
+}
 watch(
-	() => order.value.status,
-	(status) => {
-		if (
-			!DESIGN_MODE &&
-			!connection.pending &&
-			order.value.id &&
-			props.page !== "09"
-		) {
-			const target = {
-				pending: "10",
-				stock_issue: "10",
-				preparing: "11",
-				delivering: "12",
-				completed: "12",
-			}[status];
-			if (target && target !== props.page) {
-				go(target, { id: order.value.id });
-				return;
-			}
-		}
-		if (props.page === "12") {
-			delivered.value = status === "completed";
-			if (delivered.value) confirmOpen.value = false;
-		}
+	[
+		() => order.value.status,
+		() => connection.pending,
+		() => connection.ready,
+	],
+	([status]) => {
+		delivered.value = status === "completed";
+		if (status !== "delivering") confirmOpen.value = false;
+		syncOrderRoute();
 	},
 	{ immediate: true },
 );
@@ -496,6 +536,8 @@ function toggleCheck(id) {
 		: [...checkedIds.value, id];
 }
 async function advance() {
+	if (advancing || connection.pending || !canAct.value) return;
+	advancing = true;
 	try {
 		if (["10", "11"].includes(props.page) && !allItemsChecked.value) {
 			toast(
@@ -544,15 +586,19 @@ async function advance() {
 			confirmOpen.value = false;
 			delivered.value = true;
 			toast("已确认送达，订单已完成");
-		} else go(props.page === "10" ? "11" : "12", { id });
+		} else if (DESIGN_MODE) go(props.page === "10" ? "11" : "12", { id });
 	} catch (error) {
 		toast(error.message);
+	} finally {
+		advancing = false;
+		syncOrderRoute();
 	}
 }
-let visible = false;
 let noticeTimer;
 onShow(() => {
 	visible = true;
+	redirecting = "";
+	nextTick(syncOrderRoute);
 	clearInterval(noticeTimer);
 	noticeTimer = setInterval(() => {
 		if (props.page === "09" && newestPending.value) playNotice();
@@ -562,13 +608,9 @@ onHide(() => {
 	visible = false;
 	clearInterval(noticeTimer);
 });
-onUnmounted(() => clearInterval(noticeTimer));
-// A shortage submitted on the preparation page must land on the paused detail
-// after the write finishes. Hidden cached pages must never redirect the user.
-watch(() => connection.pending, pending => {
-    if (!pending && visible && props.page === "11" && order.value.status === "stock_issue") {
-        go("10", { id: order.value.id });
-    }
+onUnmounted(() => {
+	visible = false;
+	clearInterval(noticeTimer);
 });
 function toggleSound() {
 	state.sound = !state.sound;

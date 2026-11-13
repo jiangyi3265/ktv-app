@@ -1,16 +1,29 @@
 <template>
-	<view class="food-image"
-		><image
+	<view class="food-image">
+		<!-- H5 uses native images so a late load cannot touch an unmounted uni-image. -->
+		<!-- #ifdef H5 -->
+		<img
+			:src="src ? resolvedSrc : `/static/food/${crop.file}.png`"
+			:class="src ? 'uploaded-food' : 'food-source'"
+			style="width: 100%; height: 100%; object-fit: cover; display: block"
+			alt=""
+		/>
+		<!-- #endif -->
+		<!-- #ifndef H5 -->
+		<image
 			v-if="src"
 			:src="resolvedSrc"
 			class="uploaded-food"
-			mode="aspectFill" /><image
+			mode="aspectFill"
+		/><image
 			v-else
 			:src="`/static/food/${crop.file}.png`"
 			class="food-source"
 			style="width: 100%; height: 100%"
 			mode="aspectFill"
-	/></view>
+		/>
+		<!-- #endif -->
+	</view>
 </template>
 <script setup>
 defineOptions({ options: { virtualHost: true } });

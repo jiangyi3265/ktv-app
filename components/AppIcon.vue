@@ -1,10 +1,24 @@
 <template>
+	<!-- #ifdef H5 -->
+	<img
+		class="app-icon"
+		:src="`/static/icons/${assetName}-${color}.png`"
+		:style="{
+			width: size + 'px',
+			height: size + 'px',
+			objectFit: 'contain',
+		}"
+		alt=""
+	/>
+	<!-- #endif -->
+	<!-- #ifndef H5 -->
 	<image
 		class="app-icon"
 		:src="`/static/icons/${assetName}-${color}.png`"
 		:style="{ width: size + 'px', height: size + 'px' }"
 		mode="aspectFit"
 	/>
+	<!-- #endif -->
 </template>
 <script setup>
 defineOptions({ options: { virtualHost: true } });

@@ -24,7 +24,7 @@ export const designPages = [
 	["23", "收款记录", "pages/supplier/ledger", "食堂与配送"],
 ].map(([id, title, path, group]) => ({ id, title, path, group }));
 
-export function go(id, query = {}) {
+export function go(id, query = {}, { replace = false } = {}) {
 	const target = designPages.find(
 		(page) => page.id === String(id).padStart(2, "0"),
 	);
@@ -37,7 +37,7 @@ export function go(id, query = {}) {
 		.join("&");
 	const url = `/${target.path}${search ? "?" + search : ""}`;
 	const pages = getCurrentPages();
-	if (pages.length >= 8) uni.redirectTo({ url });
+	if (replace || pages.length >= 8) uni.redirectTo({ url });
 	else uni.navigateTo({ url });
 }
 
