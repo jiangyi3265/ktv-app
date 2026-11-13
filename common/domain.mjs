@@ -1,6 +1,7 @@
 export const STATUS = {
 	unpaid: "待付款",
 	pending: "待接单",
+	stock_issue: "缺货待处理",
 	preparing: "制作中",
 	delivering: "配送中",
 	completed: "已完成",

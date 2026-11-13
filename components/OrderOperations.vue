@@ -1,7 +1,18 @@
 <template>
 	<view class="card" v-if="order?.id">
-		<view v-if="order.assignmentRequired" class="form-error">已付款，当前没有可接单食堂，请分配食堂或处理退款。</view>
+		<view v-if="order.assignmentRequired" class="form-error"
+			>已付款，当前没有可接单食堂，请分配食堂或处理退款。</view
+		>
 		<text class="card-heading">订单处理</text>
+		<view v-if="order.status === 'stock_issue'" class="stock-detail"
+			><text class="bold">备货方反馈缺货</text
+			><text v-for="item in order.stockIssue?.items || []" :key="item.id"
+				>{{ item.name }} × {{ item.quantity }}</text
+			><text>{{ order.stockIssue?.reason }}</text
+			><text class="muted small"
+				>请选择转派、确认补货或全额退款，处理前暂停配送。</text
+			></view
+		>
 		<button
 			v-if="order.status === 'unpaid'"
 			class="outline-button"
@@ -10,7 +21,11 @@
 			取消未付款订单
 		</button>
 		<template
-			v-if="['pending', 'preparing', 'delivering'].includes(order.status)"
+			v-if="
+				['pending', 'preparing', 'delivering', 'stock_issue'].includes(
+					order.status,
+				)
+			"
 		>
 			<picker
 				:range="suppliers.map((a) => a.name + ' · ' + a.id)"
@@ -22,7 +37,7 @@
 			<input
 				v-model="reason"
 				class="dialog-input"
-				placeholder="填写转派或退款原因"
+				placeholder="填写补货、转派或退款说明"
 				maxlength="200"
 			/>
 			<button
@@ -31,6 +46,14 @@
 				@click="transfer"
 			>
 				转派给所选食堂
+			</button>
+			<button
+				v-if="order.status === 'stock_issue'"
+				class="outline-button"
+				:disabled="connection.pending"
+				@click="resume"
+			>
+				已补齐货品，重新通知原备货方
 			</button>
 		</template>
 		<template
@@ -42,9 +65,12 @@
 		>
 			<input
 				v-if="
-					!['pending', 'preparing', 'delivering'].includes(
-						order.status,
-					)
+					![
+						'pending',
+						'preparing',
+						'delivering',
+						'stock_issue',
+					].includes(order.status)
 				"
 				v-model="reason"
 				class="dialog-input"
@@ -74,6 +100,7 @@ import {
 	cancelOrder,
 	reassignOrder,
 	refundOrder,
+	resumeStockOrder,
 } from "../common/store";
 const props = defineProps({ order: Object });
 const selected = ref(0),
@@ -121,6 +148,15 @@ function transfer() {
 		),
 	);
 }
+function resume() {
+	if (!reason.value.trim()) {
+		message.value = "请填写补货处理说明";
+		return;
+	}
+	confirm("确认已补齐货品", () =>
+		resumeStockOrder(props.order, reason.value),
+	);
+}
 function refund() {
 	if (!reason.value.trim()) {
 		message.value = "请填写退款原因";
@@ -129,3 +165,18 @@ function refund() {
 	confirm("确认全额退款", () => refundOrder(props.order, reason.value));
 }
 </script>
+
+<style scoped>
+.stock-detail {
+	display: flex;
+	flex-direction: column;
+	gap: 9px;
+	margin-bottom: 16px;
+	padding: 14px;
+	background: #fff0e6;
+	border-radius: 10px;
+	font-size: 14px;
+	line-height: 1.6;
+	overflow-wrap: anywhere;
+}
+</style>

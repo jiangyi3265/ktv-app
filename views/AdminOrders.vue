@@ -31,7 +31,13 @@
 					aria-label="搜索包厢或订单号" /></view
 			><view class="filters"
 				><button
-					v-for="tab in ['全部', '待付款', '处理中', '已完成']"
+					v-for="tab in [
+						'全部',
+						'待付款',
+						'处理中',
+						'缺货待处理',
+						'已完成',
+					]"
 					:key="tab"
 					class="filter"
 					:class="{ active: filter === tab }"
@@ -78,7 +84,8 @@
 					><view class="row"
 						><text v-if="order.paid" class="badge green"
 							>已付款</text
-						><text v-if="order.assignmentRequired" class="badge">待分配食堂</text
+						><text v-if="order.assignmentRequired" class="badge"
+							>待分配食堂</text
 						><text
 							class="badge"
 							:class="{
@@ -582,6 +589,7 @@ useOrderFilter("admin", () =>
 						全部: "",
 						待付款: "unpaid",
 						处理中: "active",
+						缺货待处理: "stock_issue",
 						已完成: "completed",
 					}[filter.value] || "",
 				search: search.value,
@@ -605,9 +613,12 @@ const orders = computed(() =>
 				(filter.value === "全部" ||
 					(filter.value === "待付款" && order.status === "unpaid") ||
 					(filter.value === "处理中" &&
-						["pending", "preparing", "delivering"].includes(
-							order.status,
-						)) ||
+						[
+							"pending",
+							"preparing",
+							"delivering",
+							"stock_issue",
+						].includes(order.status)) ||
 					(filter.value === "已完成" &&
 						order.status === "completed")) &&
 				(!roomFilter.value ||

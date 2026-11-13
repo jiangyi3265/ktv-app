@@ -44,6 +44,9 @@ export const {
 	payWechat,
 	readiness,
 	supplierLedger,
+	reportStockIssue,
+	resumeStockOrder,
+	notificationRequest,
 	changeOrderPage,
 	setOrderFilter,
 } = live;

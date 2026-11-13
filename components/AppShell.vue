@@ -47,7 +47,7 @@
 		>
 			<!-- #ifdef H5 -->
 			<view class="status-bar"
-				><text>{{ DESIGN_MODE ? '21:08' : clockText }}</text
+				><text>{{ DESIGN_MODE ? "21:08" : clockText }}</text
 				><view class="status-icons"
 					><AppIcon name="antenna-bars-5" :size="17" /><AppIcon
 						name="wifi"
@@ -111,6 +111,7 @@
 				:show-scrollbar="false"
 				class="page-scroll"
 				:class="contentClass"
+				:key="scrollKey"
 				><slot
 			/></scroll-view>
 			<view
@@ -138,7 +139,12 @@
 				</button>
 			</view>
 			<!-- #ifndef H5 -->
-			<view v-if="!tabs && $slots.footer && (DESIGN_MODE || connection.ready)" :style="{ height: safeBottom + 'px', flexShrink: 0 }" />
+			<view
+				v-if="
+					!tabs && $slots.footer && (DESIGN_MODE || connection.ready)
+				"
+				:style="{ height: safeBottom + 'px', flexShrink: 0 }"
+			/>
 			<!-- #endif -->
 			<slot v-if="DESIGN_MODE || connection.ready" name="overlay" />
 		</view>
@@ -171,6 +177,7 @@ const props = defineProps({
 	activeTab: String,
 	backTo: String,
 	contentClass: String,
+	scrollKey: String,
 	align: { type: String, default: "center" },
 	accountRole: String,
 });
@@ -181,24 +188,46 @@ const safeBottom = ref(0);
 // Use the native window height while retaining the H5 reference frame.
 // #ifndef H5
 function updateWindow() {
-	const info = uni.getWindowInfo ? uni.getWindowInfo() : uni.getSystemInfoSync();
+	const info = uni.getWindowInfo
+		? uni.getWindowInfo()
+		: uni.getSystemInfoSync();
 	statusHeight.value = info.statusBarHeight || 0;
-	safeBottom.value = info.safeArea ? Math.max(0, info.screenHeight - info.safeArea.bottom) : 0;
-	windowStyle.value = { height: info.windowHeight + 'px', minHeight: '0', boxSizing: 'border-box' };
+	safeBottom.value = info.safeArea
+		? Math.max(0, info.screenHeight - info.safeArea.bottom)
+		: 0;
+	windowStyle.value = {
+		height: info.windowHeight + "px",
+		minHeight: "0",
+		boxSizing: "border-box",
+	};
 }
 updateWindow();
 uni.onWindowResize(updateWindow);
 onUnmounted(() => uni.offWindowResize(updateWindow));
 // #endif
-const clockText = ref(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
-const clockTimer = setInterval(() => { clockText.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }); }, 30000);
+const clockText = ref(
+	new Date().toLocaleTimeString([], {
+		hour: "2-digit",
+		minute: "2-digit",
+		hour12: false,
+	}),
+);
+const clockTimer = setInterval(() => {
+	clockText.value = new Date().toLocaleTimeString([], {
+		hour: "2-digit",
+		minute: "2-digit",
+		hour12: false,
+	});
+}, 30000);
 onUnmounted(() => clearInterval(clockTimer));
-const role = computed(() =>
-	props.accountRole || (Number(props.page) <= 8
-		? "customer"
-		: Number(props.page) <= 12
-			? "supplier"
-			: "admin"),
+const role = computed(
+	() =>
+		props.accountRole ||
+		(Number(props.page) <= 8
+			? "customer"
+			: Number(props.page) <= 12
+				? "supplier"
+				: "admin"),
 );
 watch(
 	role,

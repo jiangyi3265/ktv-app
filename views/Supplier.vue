@@ -1,6 +1,7 @@
 <template>
 	<AppShell
 		:page="page"
+		:scroll-key="page === '09' ? 'workbench' : order.id + order.status"
 		:title="
 			page === '09'
 				? '接单工作台'
@@ -23,7 +24,18 @@
 		:back-to="page !== '09' ? '09' : undefined"
 	>
 		<view v-if="page === '09'" class="page-body supplier-body">
-			<button v-if="!DESIGN_MODE" class="card between ledger-entry" @click="go('23')"><view class="row"><AppIcon name="receipt" color="green" :size="23"/><text>收款记录</text></view><AppIcon name="chevron-right" color="gray" :size="19"/></button>
+			<StaffNotifications v-if="!DESIGN_MODE" />
+			<button
+				v-if="!DESIGN_MODE"
+				class="card between ledger-entry"
+				@click="go('23')"
+			>
+				<view class="row"
+					><AppIcon name="receipt" color="green" :size="23" /><text
+						>收款记录</text
+					></view
+				><AppIcon name="chevron-right" color="gray" :size="19" />
+			</button>
 			<button
 				v-if="
 					showNotice &&
@@ -153,13 +165,30 @@
 			</button></view
 		>
 		<view v-else class="page-body supplier-detail">
+			<view
+				v-if="order.status === 'stock_issue'"
+				class="card stock-message"
+				><text class="bold">缺货已反馈，等待商家处理</text
+				><text>{{ order.stockIssue?.reason }}</text
+				><text class="muted small"
+					>请暂停备货。商家会重新分配、确认补货或处理退款。</text
+				></view
+			>
+			<view v-else-if="page === '10'" class="stock-instruction"
+				><text class="bold">接单前，请先确认全部有货</text
+				><text>逐项核对实物库存及数量，有缺货请先反馈。</text></view
+			>
 			<view class="card supplier-room-card"
 				><view class="between"
 					><view
 						><text class="large-room">{{ order.room }}</text
 						><text class="room-unit">包厢</text></view
 					><text v-if="page !== '12'" class="badge solid">{{
-						page === "10" ? "待接单" : "制作中"
+						order.status === "stock_issue"
+							? "缺货待处理"
+							: page === "10"
+								? "待接单"
+								: "制作中"
 					}}</text
 					><AppIcon
 						v-else-if="delivered"
@@ -216,7 +245,10 @@
 				><ItemList
 					:items="order.items"
 					:prices="false"
-					:checkable="page === '11'"
+					:checkable="
+						['10', '11'].includes(page) &&
+						order.status !== 'stock_issue'
+					"
 					:checked-ids="checkedIds"
 					@check="toggleCheck"
 			/></view>
@@ -227,6 +259,13 @@
 					><text class="order-room">{{ order.room }} 包厢</text></view
 				></view
 			>
+			<StockIssueForm
+				v-if="
+					!DESIGN_MODE &&
+					['pending', 'preparing'].includes(order.status)
+				"
+				:order="order"
+			/>
 			<view v-if="page === '11'" class="packing-note"
 				><AppIcon name="paper-bag" color="orange" :size="67" /><view
 					><text class="bold">出餐前核对数量</text
@@ -244,13 +283,13 @@
 				><text class="muted">订单已完成，顾客端状态同步更新</text></view
 			>
 		</view>
-		<template v-if="page !== '09'" #footer
+		<template v-if="page !== '09' && order.status !== 'stock_issue'" #footer
 			><button
 				class="primary-button"
 				:disabled="
 					!order.id ||
 					connection.pending ||
-					(page === '11' && !allItemsChecked)
+					(['10', '11'].includes(page) && !allItemsChecked)
 				"
 				@click="
 					page === '12'
@@ -262,7 +301,7 @@
 			>
 				{{
 					page === "10"
-						? "确认接单"
+						? "确认有货并接单"
 						: page === "11"
 							? "出餐并开始配送"
 							: delivered
@@ -298,11 +337,13 @@
 	</AppShell>
 </template>
 <script setup>
-import { computed, ref, watch, provide } from "vue";
+import { computed, ref, watch, provide, onUnmounted } from "vue";
 provide("artboard", 3);
 import { onShow, onHide } from "@dcloudio/uni-app";
 import AppShell from "../components/AppShell.vue";
 import OrderPages from "../components/OrderPages.vue";
+import StaffNotifications from "../components/StaffNotifications.vue";
+import StockIssueForm from "../components/StockIssueForm.vue";
 import AppIcon from "../components/AppIcon.vue";
 import FoodImage from "../components/FoodImage.vue";
 import ItemList from "../components/ItemList.vue";
@@ -334,6 +375,7 @@ useOrderFilter("supplier", () =>
 );
 const supplierTabs = [
 	{ key: "pending", label: "待接单" },
+	{ key: "stock_issue", label: "缺货待处理" },
 	{ key: "preparing", label: "制作中" },
 	{ key: "delivering", label: "配送中" },
 ];
@@ -374,7 +416,7 @@ const order = computed(
 			: { id: "", items: [], status: "", room: "", events: [] }),
 );
 watch(
-	() => order.value.id,
+	[() => order.value.id, () => order.value.status],
 	() => {
 		checkedIds.value = DESIGN_MODE
 			? order.value.items.map((item) => item.id)
@@ -398,6 +440,7 @@ watch(
 		) {
 			const target = {
 				pending: "10",
+				stock_issue: "10",
 				preparing: "11",
 				delivering: "12",
 				completed: "12",
@@ -439,7 +482,7 @@ const newestPending = computed(() =>
 );
 function openOrder(item) {
 	go(
-		item.status === "pending"
+		["pending", "stock_issue"].includes(item.status)
 			? "10"
 			: item.status === "preparing"
 				? "11"
@@ -454,8 +497,12 @@ function toggleCheck(id) {
 }
 async function advance() {
 	try {
-		if (props.page === "11" && !allItemsChecked.value) {
-			toast("请先核对全部餐品数量");
+		if (["10", "11"].includes(props.page) && !allItemsChecked.value) {
+			toast(
+				props.page === "10"
+					? "请先逐项确认有货及数量"
+					: "请先核对全部餐品数量",
+			);
 			return;
 		}
 		const account = state.accounts.find(
@@ -503,11 +550,25 @@ async function advance() {
 	}
 }
 let visible = false;
+let noticeTimer;
 onShow(() => {
 	visible = true;
+	clearInterval(noticeTimer);
+	noticeTimer = setInterval(() => {
+		if (props.page === "09" && newestPending.value) playNotice();
+	}, 60000);
 });
 onHide(() => {
 	visible = false;
+	clearInterval(noticeTimer);
+});
+onUnmounted(() => clearInterval(noticeTimer));
+// A shortage submitted on the preparation page must land on the paused detail
+// after the write finishes. Hidden cached pages must never redirect the user.
+watch(() => connection.pending, pending => {
+    if (!pending && visible && props.page === "11" && order.value.status === "stock_issue") {
+        go("10", { id: order.value.id });
+    }
 });
 function toggleSound() {
 	state.sound = !state.sound;
@@ -538,3 +599,26 @@ watch(
 	},
 );
 </script>
+
+<style scoped>
+.stock-message,
+.stock-instruction {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	font-size: 14px;
+	line-height: 1.6;
+	margin-bottom: 16px;
+	padding: 16px;
+	background: #fff0e6;
+	border-radius: 13px;
+	color: #72472f;
+}
+.supplier-tabs {
+	gap: 8px;
+	flex-wrap: wrap;
+}
+.supplier-tabs button {
+	font-size: 14px;
+}
+</style>

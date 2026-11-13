@@ -25,6 +25,7 @@
 					><text>管理本店包厢、餐品与订单</text></view
 				><AppIcon name="chevron-right" color="white"
 			/></view>
+			<StaffNotifications v-if="!DESIGN_MODE" />
 			<text class="section-title">常用管理</text
 			><view class="admin-menu"
 				><button
@@ -49,7 +50,7 @@
 				><view
 					v-for="(text, index) in [
 						'顾客支付给 KTV',
-						'食堂制作并配送',
+						'备货人确认有货后接单配送',
 						'配送方确认完成',
 					]"
 					:key="text"
@@ -170,7 +171,9 @@
 				保存二维码</button
 			><button class="text-button qr-regenerate" @click="regenerateQR">
 				重新生成</button
-			><text v-if="DESIGN_MODE" class="qr-demo-note">二维码为设计示意</text>
+			><text v-if="DESIGN_MODE" class="qr-demo-note"
+				>二维码为设计示意</text
+			>
 		</view>
 		<view v-else-if="page === '16'" class="page-body">
 			<view class="search-field"
@@ -321,6 +324,7 @@
 	</AppShell>
 </template>
 <script setup>
+import StaffNotifications from "../components/StaffNotifications.vue";
 import { computed, reactive, ref, watch } from "vue";
 import AppShell from "../components/AppShell.vue";
 import AppIcon from "../components/AppIcon.vue";

@@ -22,7 +22,10 @@
 		>
 			<text>尚未确认支付成功</text
 			><text>请查看订单状态，避免重复付款</text>
-			<button class="primary-button" @click="go('07', { id: currentOrder.id })">
+			<button
+				class="primary-button"
+				@click="go('07', { id: currentOrder.id })"
+			>
 				查看订单
 			</button>
 		</view>
@@ -77,7 +80,11 @@
 			><button class="outline-button" @click="go('01')">继续点餐</button>
 		</view>
 		<view v-else-if="page === '06'" class="page-body orders-body">
-			<view v-if="!DESIGN_MODE" class="staff-access"><button class="staff-entry text-button" @click="go('09')">食堂登录</button></view>
+			<view v-if="!DESIGN_MODE" class="staff-access"
+				><button class="staff-entry text-button" @click="go('09')">
+					食堂登录
+				</button></view
+			>
 			<OrderPages />
 			<view class="filters"
 				><button
@@ -212,17 +219,19 @@
 								? `餐食已送至 ${currentOrder.room} 包厢`
 								: status === "unpaid"
 									? "订单尚未支付，支付后食堂开始处理"
-									: status === "pending"
-										? "食堂收到订单后将尽快制作"
-										: status === "preparing"
-											? "食堂正在为你制作餐食"
-											: status === "cancelled"
-												? "订单已取消，不会安排制作"
-												: status === "refunding"
-													? "退款处理中，请耐心等待"
-													: status === "refunded"
-														? "餐费已原路退回"
-														: `餐食正在送往 ${currentOrder.room} 包厢`
+									: status === "stock_issue"
+										? "部分餐品缺货，商家正在协调，请暂候"
+										: status === "pending"
+											? "食堂收到订单后将尽快制作"
+											: status === "preparing"
+												? "食堂正在为你制作餐食"
+												: status === "cancelled"
+													? "订单已取消，不会安排制作"
+													: status === "refunding"
+														? "退款处理中，请耐心等待"
+														: status === "refunded"
+															? "餐费已原路退回"
+															: `餐食正在送往 ${currentOrder.room} 包厢`
 						}}</text></view
 					></view
 				><text v-if="completed" class="delivered-time"
@@ -306,7 +315,9 @@
 			<text v-if="!completed" class="delivery-note">{{
 				status === "unpaid"
 					? "支付成功后订单将交给食堂"
-					: "送达后订单状态将自动更新"
+					: status === "stock_issue"
+						? "商家处理后会同步更新，请勿重复付款"
+						: "送达后订单状态将自动更新"
 			}}</text>
 		</view>
 		<template
@@ -402,9 +413,12 @@ const orders = computed(() =>
 			order.customerId === state.customerId &&
 			(filter.value === "all" ||
 				(filter.value === "active" &&
-					["pending", "preparing", "delivering"].includes(
-						order.status,
-					)) ||
+					[
+						"pending",
+						"preparing",
+						"delivering",
+						"stock_issue",
+					].includes(order.status)) ||
 				order.status === filter.value),
 	),
 );
@@ -435,12 +449,10 @@ async function openOrder(order) {
 	if (paying.value) return;
 	state.activeOrderId = order.id;
 	persist();
-	if (order.status === "unpaid") { await pay(() => order); return; }
-	go(
-		order.status === "completed"
-				? "08"
-				: "07",
-		{ id: order.id },
-	);
+	if (order.status === "unpaid") {
+		await pay(() => order);
+		return;
+	}
+	go(order.status === "completed" ? "08" : "07", { id: order.id });
 }
 </script>

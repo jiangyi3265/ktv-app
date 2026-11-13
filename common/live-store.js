@@ -1,7 +1,12 @@
 import { reactive, computed } from "vue";
 import { request, uploadImage } from "./api";
 import { money, totalCents, setQuantity } from "./domain.mjs";
-import { createRoomResolver, requireRoom, roomScene, scannedScene } from "./room-entry.mjs";
+import {
+	createRoomResolver,
+	requireRoom,
+	roomScene,
+	scannedScene,
+} from "./room-entry.mjs";
 const LOCAL_KEY = "ktv-local-v1",
 	local = uni.getStorageSync(LOCAL_KEY) || {};
 export const state = reactive({
@@ -89,8 +94,12 @@ function apply(data, role, epoch) {
 	revision = data.revision;
 	for (const key of ["products", "orders", "rooms", "accounts"])
 		state[key] = data[key];
-	if (role === "admin" && !data.rooms.some((room) => room.id === state.selectedRoom))
-		state.selectedRoom = (data.rooms.find((room) => room.bound) || data.rooms[0])?.id || "";
+	if (
+		role === "admin" &&
+		!data.rooms.some((room) => room.id === state.selectedRoom)
+	)
+		state.selectedRoom =
+			(data.rooms.find((room) => room.bound) || data.rooms[0])?.id || "";
 	if (role === "customer") state.customerId = data.subject;
 	if (role === "supplier") state.supplierId = data.subject;
 	connection.demoPayment = data.demoPayment;
@@ -342,8 +351,13 @@ export const visibleSupplierOrders = computed(() =>
 export async function createUnpaidOrder() {
 	requireRoom(state);
 	if (!cartItems.value.length) throw new Error("请先选择餐品");
-	const room = state.room, scene = state.scene;
-	if (!(await scanRoom(scene)) || state.room !== room || state.scene !== scene)
+	const room = state.room,
+		scene = state.scene;
+	if (
+		!(await scanRoom(scene)) ||
+		state.room !== room ||
+		state.scene !== scene
+	)
 		throw new Error("包厢已变化，请核对后重新确认订单");
 	requireRoom(state);
 	const items = cartItems.value.map(({ id, quantity }) => ({ id, quantity })),
@@ -368,11 +382,33 @@ export async function createUnpaidOrder() {
 	return state.orders.find((o) => o.id === result.id) || result;
 }
 export function updateOrder(id, status, checkedIds = []) {
-	return mutate(`/orders/${encodeURIComponent(id)}/transition`, "POST", {
-		status,
-		checkedIds,
-	});
+	const order =
+		state.orders.find((o) => o.id === id) ||
+		(state.orderDetail?.id === id ? state.orderDetail : null);
+	return mutate(
+		`/orders/${encodeURIComponent(id)}/${status === "preparing" ? "accept" : "transition"}`,
+		"POST",
+		{ status, checkedIds, ...(order ? { version: order.version } : {}) },
+	);
 }
+export const reportStockIssue = (order, itemIds, reason) =>
+	mutate(`/orders/${encodeURIComponent(order.id)}/stock-issue`, "POST", {
+		version: order.version,
+		itemIds,
+		reason,
+	});
+export const resumeStockOrder = (order, reason) =>
+	mutate(`/orders/${encodeURIComponent(order.id)}/stock-resume`, "POST", {
+		version: order.version,
+		reason,
+	});
+export const notificationRequest = (path, method = "GET", data) =>
+	request("/notifications" + path, {
+		method,
+		data,
+		token: session(connection.role)?.token,
+	});
+
 export async function completeDemoPayment(id) {
 	const order = state.orders.find((o) => o.id === id),
 		items = cartItems.value;
@@ -439,16 +475,28 @@ export const readiness = () =>
 export function supplierLedger(filters = {}) {
 	const current = session("supplier");
 	if (!current) return Promise.reject(new Error("请先登录食堂账号"));
-	const query = Object.entries(filters).map(([key,value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`).join("&");
+	const query = Object.entries(filters)
+		.map(
+			([key, value]) =>
+				`${encodeURIComponent(key)}=${encodeURIComponent(value)}`,
+		)
+		.join("&");
 	return request("/finance/ledger?" + query, { token: current.token });
 }
-export const scanRoom = createRoomResolver(state,
-	(scene) => request(`/scan/${encodeURIComponent(scene)}`), persist);
+export const scanRoom = createRoomResolver(
+	state,
+	(scene) => request(`/scan/${encodeURIComponent(scene)}`),
+	persist,
+);
 export async function enterRoom(options, restore = false) {
 	try {
 		let scene;
-		try { scene = roomScene(options) || (restore ? state.scene : ""); }
-		catch (error) { await scanRoom("").catch(() => {}); throw error; }
+		try {
+			scene = roomScene(options) || (restore ? state.scene : "");
+		} catch (error) {
+			await scanRoom("").catch(() => {});
+			throw error;
+		}
 		if (scene) await scanRoom(scene);
 	} catch (error) {
 		uni.showToast({ title: error.message, icon: "none" });
@@ -457,18 +505,29 @@ export async function enterRoom(options, restore = false) {
 export async function scanRoomCode() {
 	// #ifdef MP-WEIXIN
 	try {
-		const result = await new Promise((resolve, reject) => uni.scanCode({
-			onlyFromCamera: false, success: resolve, fail: reject,
-		}));
+		const result = await new Promise((resolve, reject) =>
+			uni.scanCode({
+				onlyFromCamera: false,
+				success: resolve,
+				fail: reject,
+			}),
+		);
 		return await scanRoom(scannedScene(result));
 	} catch (error) {
 		if (!/cancel/i.test(error.errMsg || ""))
-			uni.showToast({ title: error.message || "扫码失败，请重试或使用微信扫一扫", icon: "none" });
+			uni.showToast({
+				title: error.message || "扫码失败，请重试或使用微信扫一扫",
+				icon: "none",
+			});
 		return false;
 	}
 	// #endif
 	// #ifndef MP-WEIXIN
-	uni.showModal({ title: "请扫描包厢码", content: "请用微信扫一扫包厢内的专属点餐码。通用体验码不包含包厢号。", showCancel: false });
+	uni.showModal({
+		title: "请扫描包厢码",
+		content: "请用微信扫一扫包厢内的专属点餐码。通用体验码不包含包厢号。",
+		showCancel: false,
+	});
 	return false;
 	// #endif
 }
