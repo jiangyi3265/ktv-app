@@ -49,6 +49,7 @@ const fs = require("node:fs/promises"),
 	let supplierSession, initialAccount, adminSession, roomId;
 	try {
 		adminSession = await api("/sessions/staff", null, "POST", access.admin);
+		assert.equal((await api("/state", adminSession.token)).demoPayment, true, "Use an isolated demo backend for write tests");
 		await go(admin, "admin/rooms");
 		await screen(admin)
 			.locator(".connection-gate input")
@@ -98,16 +99,23 @@ const fs = require("node:fs/promises"),
 		await screen(customer)
 			.locator(".sync-warning")
 			.waitFor({ state: "hidden", timeout: 20000 });
-		await go(admin, "admin/permissions");
-		await screen(admin).locator(".permission-card").first().waitFor();
+		// Existing kitchens may have active orders and must reject permission removal.
+		// Use a separate kitchen without orders for the permission-update scenario.
+		const permissionPassword = require("node:crypto").randomBytes(24).toString("base64url");
+		const permissionAccount = await api("/accounts", adminSession.token, "POST", {
+			name: "权限回归 " + Date.now(), password: permissionPassword, enabled: true, process: true, deliver: true,
+		});
 		initialAccount = (
 			await api("/state", adminSession.token)
-		).accounts.find((a) => a.id === "A01");
+		).accounts.find((a) => a.id === permissionAccount.id);
+		await go(admin, "admin/accounts");
+		await screen(admin).locator(".account-card").filter({ hasText: initialAccount.name }).locator("uni-button").last().click();
+		await screen(admin).locator(".permission-card").first().waitFor();
 		await screen(admin).locator('[aria-label="确认送达权限"]').click();
 		await click(admin, "保存设置");
 		for (let i = 0; i < 30; i++) {
 			const a = (await api("/state", adminSession.token)).accounts.find(
-				(a) => a.id === "A01",
+				(a) => a.id === initialAccount.id,
 			);
 			if (a.deliver !== initialAccount.deliver) break;
 			await new Promise((r) => setTimeout(r, 100));
@@ -116,7 +124,7 @@ const fs = require("node:fs/promises"),
 			"/sessions/staff",
 			null,
 			"POST",
-			access.supplier,
+			{ username: initialAccount.id, password: permissionPassword },
 		);
 		assert.equal(
 			(await api("/state", supplierSession.token)).accounts[0].deliver,
@@ -174,10 +182,11 @@ const fs = require("node:fs/promises"),
 		if (initialAccount && adminSession) {
 			const latest = (
 				await api("/state", adminSession.token)
-			).accounts.find((a) => a.id === "A01");
-			await api("/accounts/A01", adminSession.token, "PUT", {
+			).accounts.find((a) => a.id === initialAccount.id);
+			await api("/accounts/" + initialAccount.id, adminSession.token, "PUT", {
 				...latest,
 				deliver: initialAccount.deliver,
+				enabled: false,
 			});
 		}
 		if (adminSession) await api("/session", adminSession.token, "DELETE");

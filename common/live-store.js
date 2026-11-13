@@ -45,10 +45,35 @@ export const connection = reactive({
 });
 let revision = -1,
 	generation = 0,
+	readSequence = 0,
+	loginSequence = 0,
 	timer,
 	boot;
 const sessionKey = (role) => `ktv-session-${role}-v1`;
 const session = (role) => uni.getStorageSync(sessionKey(role)) || null;
+function invalidateContext() {
+	generation++;
+	readSequence++;
+	loginSequence++;
+	clearTimeout(timer);
+	boot = null;
+	revision = -1;
+	connection.ready = false;
+	connection.loading = false;
+	connection.pending = false;
+	connection.hasMoreOrders = false;
+	connection.demoPayment = false;
+	connection.wechatPayment = false;
+	state.customerId = "";
+	state.supplierId = "";
+	state.orderDetail = null;
+	state.orderCounts = {};
+	state.orderAlerts = [];
+	for (const key of ["products", "orders", "rooms", "accounts"]) state[key] = [];
+}
+function discardSession(current) {
+	if (current?.token) request("/session", { method: "DELETE", token: current.token }).catch(() => {});
+}
 const orderFilters = {};
 const filterKey = (role) => JSON.stringify(orderFilters[role] || {});
 export async function setOrderFilter(role, filters = {}) {
@@ -119,30 +144,34 @@ function handleError(error, role, epoch) {
 	connection.offline = true;
 	if (error.status === 401 || error.status === 403) {
 		uni.removeStorageSync(sessionKey(role));
-		connection.ready = false;
+		invalidateContext();
 		connection.needsLogin = role !== "customer";
-		for (const key of ["products", "orders", "rooms", "accounts"])
-			state[key] = [];
 	}
 }
 export async function refresh() {
 	const role = connection.role,
 		epoch = generation,
-		current = session(role);
+		current = session(role),
+		sequence = ++readSequence,
+		key = filterKey(role),
+		page = state.orderPage,
+		orderId = state.activeOrderId || "";
 	if (!current) throw new Error("请先登录");
+	const isCurrent = () => epoch === generation && role === connection.role &&
+		session(role)?.token === current.token && sequence === readSequence &&
+		key === filterKey(role) && page === state.orderPage && orderId === (state.activeOrderId || "");
 	try {
-		const key = filterKey(role);
 		const filters = Object.entries(orderFilters[role] || {})
 			.map(([name, value]) => `${name}=${encodeURIComponent(value)}`)
 			.join("&");
 		const data = await request(
-			`/state?page=${state.orderPage}&orderId=${encodeURIComponent(state.activeOrderId || "")}&${filters}`,
+			`/state?page=${page}&orderId=${encodeURIComponent(orderId)}&${filters}`,
 			{ token: current.token },
 		);
-		if (key === filterKey(role)) apply(data, role, epoch);
+		if (isCurrent()) apply(data, role, epoch);
 		return data;
 	} catch (error) {
-		handleError(error, role, epoch);
+		if (isCurrent()) handleError(error, role, epoch);
 		throw error;
 	}
 }
@@ -171,22 +200,18 @@ export function activate(role) {
 		schedule();
 		return refresh().catch(() => {});
 	}
-	clearTimeout(timer);
-	const epoch = ++generation;
+	invalidateContext();
+	const epoch = generation;
 	connection.role = role;
 	state.orderPage = 1;
-	state.orderDetail = null;
-	state.orderCounts = {};
-	state.orderAlerts = [];
 	connection.loading = true;
 	connection.ready = false;
 	connection.error = "";
+	connection.offline = false;
 	connection.needsLogin = false;
-	revision = -1;
-	for (const key of ["products", "orders", "rooms", "accounts"])
-		state[key] = [];
 	boot = Promise.resolve().then(async () => {
 		try {
+			if (epoch !== generation || role !== connection.role) return;
 			let current = session(role);
 			if (!current && role === "customer") {
 				// #ifdef MP-WEIXIN
@@ -211,6 +236,9 @@ export function activate(role) {
 							undefined,
 					},
 				});
+				// #endif
+				if (epoch !== generation || role !== connection.role) { discardSession(current); return; }
+				// #ifndef MP-WEIXIN
 				if (current.recovery)
 					uni.setStorageSync(
 						"ktv-customer-recovery",
@@ -232,6 +260,7 @@ export function activate(role) {
 					method: "POST",
 					token: current.token,
 				});
+				if (epoch !== generation || role !== connection.role) return;
 				uni.setStorageSync("ktv-customer-recovery", recovery.recovery);
 			}
 			// #endif
@@ -250,10 +279,15 @@ export function activate(role) {
 	return boot;
 }
 export async function login(username, password, role = connection.role) {
+	const epoch = generation, attempt = ++loginSequence;
 	const current = await request("/sessions/staff", {
 		method: "POST",
 		data: { username, password },
 	});
+	if (epoch !== generation || role !== connection.role || attempt !== loginSequence) {
+		discardSession(current);
+		return false;
+	}
 	if (current.role !== role) {
 		await request("/session", { method: "DELETE", token: current.token });
 		throw new Error(
@@ -262,48 +296,47 @@ export async function login(username, password, role = connection.role) {
 	}
 	uni.setStorageSync(sessionKey(role), current);
 	boot = null;
+	connection.ready = false;
 	await activate(role);
+	if (connection.role !== role || session(role)?.token !== current.token) return false;
 	if (!connection.ready) throw new Error(connection.error || "登录失败");
 }
 export async function logout() {
 	const role = connection.role,
 		current = session(role);
-	try {
-		if (current)
-			await request("/session", {
-				method: "DELETE",
-				token: current.token,
-			});
-	} finally {
-		uni.removeStorageSync(sessionKey(role));
-		connection.ready = false;
-		await activate(role);
-	}
+	uni.removeStorageSync(sessionKey(role));
+	connection.ready = false;
+	boot = null;
+	await activate(role);
+	if (current) await request("/session", { method: "DELETE", token: current.token });
 }
 async function mutate(path, method, data) {
 	if (!connection.ready || connection.offline)
 		throw new Error("服务未连接，请重试后再操作");
 	if (connection.pending) throw new Error("上一项操作正在保存，请稍候");
 	connection.pending = true;
-	const current = session(connection.role);
+	const role = connection.role, epoch = generation, current = session(role);
+	const isCurrent = () => epoch === generation && role === connection.role && session(role)?.token === current?.token;
 	try {
 		const result = await request(path, {
 			method,
 			data,
 			token: current.token,
 		});
+		if (!isCurrent()) throw new Error("页面或账号已切换，请在原账号中核对操作结果");
 		// The mutation was acknowledged. A later read failure must not turn it into a failed write.
 		await refresh().catch(() => {});
+		if (!isCurrent()) throw new Error("页面或账号已切换，请在原账号中核对操作结果");
 		return result;
 	} catch (error) {
-		if (error.status) {
+		if (error.status && isCurrent()) {
 			try {
 				await refresh();
 			} catch {}
 		}
 		throw error;
 	} finally {
-		connection.pending = false;
+		if (isCurrent()) connection.pending = false;
 	}
 }
 export const cartItems = computed(() =>
