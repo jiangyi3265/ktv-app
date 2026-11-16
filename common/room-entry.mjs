@@ -13,6 +13,8 @@ export function roomScene(options = {}) {
 	let scene = typeof query.scene === "string" ? decode(query.scene) : null;
 	if (scene === null && query.q) scene = fromPath(decode(query.q));
 	if (scene === null) return null;
+	// The administrator entry code opens a login page, not a dining room.
+	if (scene === "admin-notices") return null;
 	if (!/^[a-f0-9]{32}$/.test(scene))
 		throw new Error("包厢码无效，请重新扫描包厢专属码");
 	return scene;
@@ -20,7 +22,9 @@ export function roomScene(options = {}) {
 export function scannedScene(result) {
 	const scene = fromPath(result.path) || fromPath(result.result);
 	if (!scene) throw new Error("请扫描包厢专属点餐码，通用体验码不包含包厢号");
-	return roomScene({ scene });
+	const room = roomScene({ scene });
+	if (!room) throw new Error("这是管理员入口，请扫描包厢专属点餐码");
+	return room;
 }
 export function requireRoom(state) {
 	if (state.roomLoading) throw new Error("正在识别包厢，请稍候");

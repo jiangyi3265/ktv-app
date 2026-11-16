@@ -78,12 +78,14 @@
 			>
 				查看订单</button
 			><button class="outline-button" @click="go('01')">继续点餐</button>
+			<StaffNotifications v-if="!DESIGN_MODE" />
 		</view>
 		<view v-else-if="page === '06'" class="page-body orders-body">
+			<StaffNotifications v-if="!DESIGN_MODE" />
 			<view v-if="!DESIGN_MODE" class="staff-access"
 				><button class="staff-entry text-button" @click="go('09')">
 					食堂登录
-				</button></view
+				</button><button class="staff-entry text-button" @click="go('13')">商家管理</button></view
 			>
 			<OrderPages />
 			<view class="filters"
@@ -193,6 +195,7 @@
 			>
 		</view>
 		<view v-else class="page-body progress-body">
+			<StaffNotifications v-if="!DESIGN_MODE && currentOrder.paid" />
 			<view class="order-status-panel" :class="{ completed: completed }"
 				><view class="status-heading"
 					><AppIcon
@@ -344,6 +347,7 @@ import { computed, ref, provide } from "vue";
 provide("artboard", 2);
 import AppShell from "../components/AppShell.vue";
 import OrderPages from "../components/OrderPages.vue";
+import StaffNotifications from "../components/StaffNotifications.vue";
 import AppIcon from "../components/AppIcon.vue";
 import FoodImage from "../components/FoodImage.vue";
 import ItemList from "../components/ItemList.vue";

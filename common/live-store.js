@@ -280,7 +280,7 @@ export function activate(role) {
 }
 export async function login(username, password, role = connection.role) {
 	const epoch = generation, attempt = ++loginSequence;
-	const current = await request("/sessions/staff", {
+	const current = await request(role === "admin" && username !== "ktv-admin" ? "/sessions/pc-admin" : "/sessions/staff", {
 		method: "POST",
 		data: { username, password },
 	});

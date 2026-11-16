@@ -2,6 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { roomScene, scannedScene, requireRoom, createRoomResolver } from "../common/room-entry.mjs";
 const a = "a".repeat(32), b = "b".repeat(32);
+test("administrator launch code is not a room and cannot be scanned as a dining room", () => {
+	assert.equal(roomScene({ query: { scene: "admin-notices" } }), null);
+	assert.equal(roomScene({ scene: "admin-notices" }), null);
+	assert.throws(() => scannedScene({ path: "pages/admin/index?scene=admin-notices" }), /管理员入口/);
+});
 test("generic trial entry cannot be mistaken for a room; launch source is not a room token", () => {
 	assert.equal(roomScene({ scene: 1017, query: {} }), null);
 	assert.equal(roomScene({}), null);

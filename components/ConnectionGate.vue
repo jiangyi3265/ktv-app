@@ -3,7 +3,7 @@
 		<text class="card-heading">{{
 			connection.needsLogin
 				? role === "admin"
-					? "KTV 管理员登录"
+					? "电脑后台管理员登录"
 					: "食堂账号登录"
 				: "连接门店服务"
 		}}</text>
@@ -28,7 +28,7 @@
 				{{ busy ? "正在登录…" : "登录" }}
 			</button>
 			<text class="muted small"
-				>请使用 KTV 分配的账号，权限由门店管理。</text
+				>{{ role === 'admin' ? '使用电脑后台的账号和密码，登录后可连接微信订单提醒。' : '请填写后台分配的账号编号（如 A01）及密码，食堂名称不能用于登录。' }}</text
 			>
 		</template>
 		<template v-else>

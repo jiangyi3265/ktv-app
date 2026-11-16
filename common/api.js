@@ -3,6 +3,9 @@ export const API_ORIGIN = (import.meta.env.VITE_KTV_API_ORIGIN || "").replace(
 	"",
 );
 export const apiUrl = (path) => API_ORIGIN + path;
+export const authHeaders = (token) => !token ? {} : token.startsWith("pc.")
+	? { Authorization: "Bearer " + token.slice(3) }
+	: { "X-KTV-Token": token };
 export function request(path, { method = "GET", data, token } = {}) {
 	return new Promise((resolve, reject) =>
 		uni.request({
@@ -12,7 +15,7 @@ export function request(path, { method = "GET", data, token } = {}) {
 			timeout: 12000,
 			header: {
 				"Content-Type": "application/json",
-				...(token ? { "X-KTV-Token": token } : {}),
+				...authHeaders(token),
 			},
 			success(response) {
 				if (response.statusCode >= 200 && response.statusCode < 300 &&
@@ -38,7 +41,7 @@ export function uploadImage(filePath, token) {
 			url: apiUrl("/ktv-api/images"),
 			filePath,
 			name: "file",
-			header: { "X-KTV-Token": token },
+			header: authHeaders(token),
 			success(response) {
 				try {
 					const data = JSON.parse(response.data);

@@ -62,6 +62,15 @@ function runtime(platform) {
 }
 
 for (const platform of ['H5', 'MP-WEIXIN']) {
+  test(platform + ': PC administrator credentials use shared PC login and retain the PC session', async () => {
+    const r = runtime(platform); await r.store.activate('admin');
+    const login = r.store.login('admin', 'fixture-password', 'admin');
+    const request = await r.next(x => x.path === '/sessions/pc-admin');
+    request.resolve({ role: 'admin', token: 'pc.fixture-jwt' });
+    (await r.stateRequest()).resolve(fixture('admin', { subject: 'pc-1' })); await login;
+    assert.equal(r.storage.get('ktv-session-admin-v1').token, 'pc.fixture-jwt');
+    assert.equal(r.store.connection.ready, true); assert.equal(r.store.connection.role, 'admin');
+  });
   test(platform + ': late success cannot restore an invalidated login', async () => {
     const r = runtime(platform); await r.boot('supplier');
     const old = r.store.refresh(), oldRequest = await r.stateRequest();

@@ -1,182 +1,108 @@
 <template>
-	<view class="staff-notices">
-		<view class="between"
-			><text class="bold">接单提醒</text
-			><button class="text-button" :disabled="busy" @click="load">
-				刷新
-			</button></view
-		>
-		<text v-if="!info.enabled" class="notice-warning"
-			>后台通知暂未启用，请及时查看订单列表。</text
-		>
-		<text v-else-if="info.groupConfigured" class="notice-ok"
-			>已配置企业微信群提醒，请确认你已在接单群内。</text
-		>
-		<text v-else-if="info.bound && info.credits > 0" class="notice-ok">{{
-			info.longTerm
-				? "微信长期订阅已登记"
-				: "已登记微信订阅，剩余约 " + info.credits + " 次"
-		}}</text>
-		<text v-else class="notice-warning"
-			>离开小程序后可能漏单，请开启微信提醒或联系商家配置接单群。</text
-		>
-		<template v-if="mini && info.templateReady && info.enabled">
-			<button
-				class="outline-button"
-				:disabled="busy"
-				@click="nonce ? subscribe() : bind()"
-			>
-				{{
-					busy
-						? "处理中…"
-						: nonce
-							? "授权接收微信提醒"
-							: info.bound
-								? "再订阅一次微信提醒"
-								: "连接微信提醒"
-				}}
-			</button>
-			<text class="muted small">{{
-				info.longTerm
-					? "消息由微信发送，实际接收取决于微信通知设置。"
-					: "微信一次性订阅每授权一次可接收一条消息，用完后请重新订阅。勾选保持选择也不会变成无限次。"
-			}}</text>
-			<button
-				v-if="info.bound"
-				class="text-button stop-notice"
-				:disabled="busy"
-				@click="unbind"
-			>
-				关闭我的微信提醒
-			</button>
-		</template>
-		<text v-else-if="!info.groupConfigured" class="muted small">{{
-			!info.templateReady
-				? "商家可在电脑后台「接单通知」完成通知配置。"
-				: "微信订阅请在微信小程序内开启。"
-		}}</text>
-		<text class="muted small"
-			>{{
-				connection.role === "supplier"
-					? "前台声音每分钟提醒待接订单；"
-					: "缺货反馈会提醒商家；"
-			}}超过 {{ info.overdueMinutes || 5 }} 分钟未接单也会提醒商家。</text
-		>
-		<text v-if="error" class="form-error">{{ error }}</text>
-	</view>
+  <view class="staff-notices">
+    <view class="between"><text class="bold">{{ title }}</text><button class="text-button" :disabled="busy || loading" @click="load">刷新</button></view>
+    <text class="muted small">{{ description }}</text>
+    <text v-if="loading" class="muted">正在读取提醒状态…</text>
+    <template v-else>
+      <text v-if="!info.enabled" class="notice-warning">订单提醒暂未启用，请在订单页面查看进度。</text>
+      <text v-else-if="!info.templateReady" class="notice-warning">{{ customer ? '商家尚未配置顾客订单提醒，请在我的订单查看进度。' : '请先在电脑后台「接单通知」配置对应的微信模板。' }}</text>
+      <text v-else-if="info.bound && info.credits > 0" class="notice-ok">{{ info.longTerm ? '微信长期订阅已登记' : '已授权，预计还可接收 ' + info.credits + ' 条提醒' }}</text>
+      <text v-else class="notice-warning">{{ info.bound ? '微信已连接，仍需授权接收提醒。' : '尚未连接微信提醒。' }}</text>
+      <text v-if="info.groupConfigured && !customer" class="notice-ok">企业微信群提醒已配置，请确认你已在接单群内。</text>
+      <template v-if="mini && info.templateReady && info.enabled">
+        <text v-if="nonce" class="muted small">连接成功，请继续点击下方按钮，在微信弹窗中选择允许。</text>
+        <button class="outline-button" :disabled="busy" @click="nonce ? subscribe() : bind()">{{ busy ? '处理中…' : nonce ? '授权接收微信提醒' : info.bound ? '再订阅一次微信提醒' : '连接微信提醒' }}</button>
+        <text class="muted small">{{ info.longTerm ? '实际接收取决于微信通知设置。' : '一次授权只能接收一条提醒。需要更多进度提醒时，请再次订阅；勾选保持选择不会变成无限次。' }}</text>
+        <button v-if="info.bound" class="text-button stop-notice" :disabled="busy" @click="unbind">关闭我的微信提醒</button>
+      </template>
+      <text v-else-if="info.templateReady && !mini" class="muted small">请使用微信打开小程序，在此页面连接并授权提醒。</text>
+    </template>
+    <text v-if="error" class="form-error">{{ error }}</text>
+  </view>
 </template>
 <script setup>
-import { ref, reactive, watch, onUnmounted } from "vue";
-import { connection, notificationRequest } from "../common/store";
-const info = reactive({ enabled: true }),
-	busy = ref(false),
-	error = ref(""),
-	nonce = ref("");
-let mini = false,
-	alive = true;
+import { ref, reactive, computed, watch, onUnmounted } from 'vue';
+import { connection, notificationRequest } from '../common/store';
+const info = reactive({}), busy = ref(false), loading = ref(true), error = ref(''), nonce = ref('');
+const customer = computed(() => connection.role === 'customer');
+const title = computed(() => customer.value ? '订单进度提醒' : connection.role === 'admin' ? '商家订单提醒' : '接单提醒');
+const description = computed(() => customer.value ? '接单、配送、送达和退款进度，通过微信通知你。' : connection.role === 'admin' ? '顾客付款下单、备货接单、缺货和超时未接单时提醒你。' : '有新的待接订单或订单转派给你时提醒，请先核对库存再接单。');
+let mini = false, alive = true, epoch = 0, read = 0;
 // #ifdef MP-WEIXIN
 mini = true;
 // #endif
-onUnmounted(() => {
-	alive = false;
-});
+const current = (version) => alive && version === epoch && connection.ready;
+onUnmounted(() => { alive = false; epoch++; });
 async function load() {
-	if (!connection.ready) return;
-	try {
-		const data = await notificationRequest("/status");
-		if (alive) Object.assign(info, data);
-	} catch (e) {
-		if (alive) error.value = e.message;
-	}
+  if (!connection.ready) return;
+  const version = epoch, sequence = ++read;
+  loading.value = true; error.value = '';
+  try {
+    const result = await notificationRequest('/status');
+    if (current(version) && sequence === read) Object.assign(info, result);
+  } catch (e) { if (current(version) && sequence === read) error.value = e.message; }
+  finally { if (current(version) && sequence === read) loading.value = false; }
 }
-watch(
-	() => connection.ready,
-	(v) => {
-		if (v) load();
-		else {
-			nonce.value = "";
-			Object.keys(info).forEach((k) => delete info[k]);
-		}
-	},
-	{ immediate: true },
-);
+watch(() => [connection.role, connection.ready], () => {
+  epoch++; read++; nonce.value = ''; busy.value = false; loading.value = true; error.value = '';
+  Object.keys(info).forEach(k => delete info[k]);
+  if (connection.ready) load();
+}, { immediate: true, flush: 'sync' });
 async function bind() {
-	busy.value = true;
-	error.value = "";
-	try {
-		// #ifdef MP-WEIXIN
-		const login = await new Promise((resolve, reject) =>
-			uni.login({ provider: "weixin", success: resolve, fail: reject }),
-		);
-		const result = await notificationRequest("/bind", "POST", {
-			code: login.code,
-		});
-		nonce.value = result.nonce;
-		info.templateId = result.templateId;
-		await load();
-		// #endif
-	} catch (e) {
-		error.value = e.message || "微信连接失败，请重试";
-	} finally {
-		busy.value = false;
-	}
+  if (busy.value) return;
+  const version = epoch; busy.value = true; error.value = '';
+  try {
+    // #ifdef MP-WEIXIN
+    const login = await new Promise((resolve, reject) => uni.login({ provider: 'weixin', success: resolve, fail: reject }));
+    if (!current(version)) return;
+    const result = await notificationRequest('/bind', 'POST', { code: login.code });
+    if (!current(version)) return;
+    nonce.value = result.nonce; info.templateId = result.templateId;
+    await load();
+    // #endif
+  } catch (e) { if (current(version)) error.value = e.message || '微信连接失败，请重试'; }
+  finally { if (current(version)) busy.value = false; }
 }
 function subscribe() {
-	if (busy.value) return;
-	busy.value = true;
-	error.value = "";
-	// Keep the subscription dialog directly inside this user tap, before network awaits.
-	// #ifdef MP-WEIXIN
-	uni.requestSubscribeMessage({
-		tmplIds: [info.templateId],
-		async success(result) {
-			try {
-				const accepted = result[info.templateId] === "accept";
-				Object.assign(
-					info,
-					await notificationRequest("/subscribe", "POST", {
-						nonce: nonce.value,
-						templateId: info.templateId,
-						accepted,
-					}),
-				);
-				nonce.value = "";
-				if (!accepted)
-					error.value =
-						"未允许微信提醒，请保持页面打开或使用接单群。";
-			} catch (e) {
-				error.value = e.message;
-				nonce.value = "";
-			} finally {
-				busy.value = false;
-			}
-		},
-		fail() {
-			error.value = "微信授权未完成，请重新连接后再试。";
-			nonce.value = "";
-			busy.value = false;
-		},
-	});
-	// #endif
-	// #ifndef MP-WEIXIN
-	busy.value = false;
-	// #endif
+  if (busy.value || !nonce.value) return;
+  const version = epoch, authorization = nonce.value, templateId = info.templateId;
+  busy.value = true; error.value = '';
+  // Keep the WeChat authorization dialog directly in the user tap, before any await.
+  // #ifdef MP-WEIXIN
+  uni.requestSubscribeMessage({ tmplIds: [templateId],
+    async success(result) {
+      if (!current(version)) return;
+      try {
+        const accepted = result[templateId] === 'accept';
+        const status = await notificationRequest('/subscribe', 'POST', { nonce: authorization, templateId, accepted });
+        if (!current(version)) return;
+        Object.assign(info, status); nonce.value = '';
+        if (!accepted) error.value = '你未允许微信提醒，仍可在订单页面查看进度。';
+      } catch (e) { if (current(version)) { error.value = e.message; nonce.value = ''; } }
+      finally { if (current(version)) busy.value = false; }
+    },
+    fail() { if (current(version)) { error.value = '微信授权未完成，请重新连接后再试。'; nonce.value = ''; busy.value = false; } }
+  });
+  // #endif
+  // #ifndef MP-WEIXIN
+  busy.value = false;
+  // #endif
 }
 async function unbind() {
-	busy.value = true;
-	try {
-		await notificationRequest("/bind", "DELETE");
-		nonce.value = "";
-		await load();
-	} catch (e) {
-		error.value = e.message;
-	} finally {
-		busy.value = false;
-	}
+  if (busy.value) return;
+  const version = epoch; busy.value = true; error.value = '';
+  try {
+    await notificationRequest('/bind', 'DELETE');
+    if (!current(version)) return;
+    nonce.value = ''; await load();
+  } catch (e) { if (current(version)) error.value = e.message; }
+  finally { if (current(version)) busy.value = false; }
 }
 </script>
 <style scoped>
 .staff-notices {
+	width: 100%;
+	text-align: left;
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
