@@ -79,6 +79,8 @@ const fs = require("node:fs/promises"),
 		const qr = await api("/rooms/" + roomId + "/qr", adminSession.token, "POST");
 		await go(customer, "index/index?scene=" + qr.scene);
 		await screen(customer).locator(".catalog-product").first().waitFor();
+		// Menu loading and QR resolution are independent requests.
+		await screen(customer).locator(".room-chip").filter({ hasText: roomId }).waitFor();
 		assert.match(
 			await screen(customer).locator(".room-chip").innerText(),
 			new RegExp(roomId),
@@ -112,7 +114,10 @@ const fs = require("node:fs/promises"),
 		await screen(admin).locator(".account-card").filter({ hasText: initialAccount.name }).locator("uni-button").last().click();
 		await screen(admin).locator(".permission-card").first().waitFor();
 		await screen(admin).locator('[aria-label="确认送达权限"]').click();
+		await screen(admin).locator('[aria-label="确认送达权限"][aria-checked="false"]').waitFor();
+		const permissionSaved = admin.waitForResponse(r => r.url().endsWith('/ktv-api/accounts/' + initialAccount.id) && r.request().method() === 'PUT');
 		await click(admin, "保存设置");
+		assert.equal((await permissionSaved).status(), 200);
 		for (let i = 0; i < 30; i++) {
 			const a = (await api("/state", adminSession.token)).accounts.find(
 				(a) => a.id === initialAccount.id,
@@ -131,7 +136,9 @@ const fs = require("node:fs/promises"),
 			!initialAccount.deliver,
 		);
 		await screen(admin).locator('[aria-label="确认送达权限"]').click();
+		const permissionRestored = admin.waitForResponse(r => r.url().endsWith('/ktv-api/accounts/' + initialAccount.id) && r.request().method() === 'PUT');
 		await click(admin, "保存设置");
+		assert.equal((await permissionRestored).status(), 200);
 		const newSecret = require("node:crypto").randomBytes(24).toString("base64url");
 		const account = await api("/accounts", adminSession.token, "POST", {
 			name: "联调账号 " + Date.now(),
