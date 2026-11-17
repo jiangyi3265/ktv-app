@@ -46,9 +46,33 @@ export function goHome() {
 	uni.reLaunch({ url: "/pages/service/index" });
 }
 
-export function back(fallback = "01") {
-	if (getCurrentPages().length > 1) uni.navigateBack();
-	else go(fallback);
+// Every registered screen has a safe destination for notification/QR-code entry.
+// Root screens reset the stack so returning never reopens checkout or another role.
+const returnTargets = {
+	"02": "01", "03": "01", "04": "06", "07": "06", "08": "06",
+	"10": "09", "11": "09", "12": "09", "14": "13", "15": "14",
+	"16": "13", "17": "16", "18": "13", "19": "18", "20": "13",
+	"21": "20", "22": "20", "23": "09",
+};
+export function returnNavigation(page, orderingEnabled = false) {
+	const id = String(page).padStart(2, "0");
+	if (["01", "09", "13"].includes(id)) return { target: "24", label: "首页", root: true };
+	if (id === "05") return { target: "06", label: "订单", root: true };
+	if (id === "06") return { target: orderingEnabled ? "01" : "24", label: orderingEnabled ? "点餐" : "首页", root: true };
+	if (id === "24") return { target: orderingEnabled ? "01" : "06", label: orderingEnabled ? "点餐" : "订单", root: true };
+	const target = returnTargets[id] || "24";
+	return { target: !orderingEnabled && ["01", "02", "03", "04"].includes(target) ? "24" : target, label: "返回", root: false };
+}
+let returning = false;
+export function back(fallback = "24", { root = false } = {}) {
+	if (returning) return;
+	returning = true;
+	const target = designPages.find(page => page.id === fallback) || designPages.find(page => page.id === "24");
+	const done = () => { returning = false; };
+	const reset = () => uni.reLaunch({ url: "/" + target.path, complete: done });
+	if (!root && getCurrentPages().length > 1) {
+		uni.navigateBack({ success: done, fail: reset });
+	} else reset();
 }
 
 export const toast = (title) =>

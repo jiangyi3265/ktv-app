@@ -1,5 +1,5 @@
 <template>
-	<AppShell :page="page" title="确认订单" back-to="01">
+	<AppShell :page="page" title="确认订单">
 		<view class="page-body">
 			<button class="destination" :disabled="state.roomLoading || paying" @click="!paymentOrder && scanRoomCode()"
 				><AppIcon name="map-pin" filled color="white" :size="37" /><view

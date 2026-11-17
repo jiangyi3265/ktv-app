@@ -62,19 +62,17 @@
 			<view
 				class="topbar"
 				:class="{
-					'topbar-left': align === 'left' && !home,
+					'has-return': true,
 					'has-subtitle': subtitle,
 				}"
 			>
 				<button
-					v-if="backTo && !home && !orderingClosed"
-					class="icon-button back-button"
-					aria-label="返回"
-					@click="back(backTo)"
+					class="back-button home-button return-button"
+					:aria-label="navigation.label === '返回' ? '返回上一页' : '返回' + navigation.label"
+					@click="back(navigation.target, { root: navigation.root })"
 				>
-					<AppIcon name="chevron-left" :size="25" />
+					<AppIcon name="chevron-left" :size="20" /><text>{{ navigation.label }}</text>
 				</button>
-				<button v-if="home && !orderingClosed" class="home-button" :aria-label="homeToOrdering ? '返回点餐' : '返回首页'" @click="returnHome"><AppIcon name="chevron-left" :size="20" /><text>{{ homeToOrdering ? '点餐' : '首页' }}</text></button>
 				<view class="topbar-title"
 					><text>{{ orderingClosed ? '门店服务' : title }}</text
 					><text v-if="subtitle" class="topbar-subtitle">{{
@@ -170,19 +168,16 @@ import {
 	refresh,
 } from "../common/store";
 import AppIcon from "./AppIcon.vue";
-import { designPages, go, back, goHome } from "../common/pages";
+import { designPages, go, back, returnNavigation } from "../common/pages";
 const props = defineProps({
 	page: String,
 	title: String,
 	subtitle: String,
 	tabs: String,
 	activeTab: String,
-	backTo: String,
 	contentClass: String,
 	scrollKey: String,
-	align: { type: String, default: "center" },
 	accountRole: String,
-	home: Boolean,
 	publicPage: Boolean,
 });
 const windowStyle = ref({});
@@ -235,11 +230,8 @@ const role = computed(
 );
 const orderingClosed = computed(() => !DESIGN_MODE && role.value === "customer" &&
 	["01", "02", "03", "04"].includes(props.page) && !connection.orderingEnabled);
-const homeToOrdering = computed(() => role.value === "customer" && connection.ready && connection.orderingEnabled);
-function returnHome() {
-	if (homeToOrdering.value) uni.reLaunch({ url: "/pages/index/index" });
-	else goHome();
-}
+const navigation = computed(() => returnNavigation(props.page,
+	DESIGN_MODE || (connection.ready && connection.orderingEnabled)));
 watch(
 	role,
 	(value) => {
@@ -319,7 +311,18 @@ const navItems = computed(() =>
 );
 </script>
 <style>
-.phone-screen .topbar .home-button { position: absolute; left: 12px; bottom: 4px; min-width: 56px; height: 44px; display: flex; align-items: center; font-size: 14px; gap: 2px; color: var(--ink); }
+.phone-screen .topbar .return-button {
+	position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
+	min-width: 64px; height: 44px; margin: 0; padding: 0 4px;
+	display: flex; align-items: center; justify-content: flex-start;
+	font-size: 14px; gap: 2px; color: var(--ink); z-index: 2;
+}
+.phone-screen .topbar.has-return .topbar-title {
+	max-width: calc(100% - 136px); min-width: 0; font-size: 20px;
+}
+.phone-screen .topbar.has-return .topbar-title > text {
+	max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .phone-screen .topbar .session-exit {
 	position: absolute;
 	right: 10px;

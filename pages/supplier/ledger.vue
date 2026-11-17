@@ -1,5 +1,5 @@
 <template>
-  <AppShell page="23" title="收款记录" account-role="supplier" back-to="09">
+  <AppShell page="23" title="收款记录" account-role="supplier">
     <view class="page-body ledger-page">
       <view class="ledger-intro"><text class="ledger-heading">我的餐费账单</text><text class="muted small">款项由 KTV 统一收取，本页用于核对当前分配订单的餐费。</text></view>
       <view class="ledger-dates"><picker mode="date" :value="from" @change="from=$event.detail.value"><view class="ledger-date">{{ from }}</view></picker><text>至</text><picker mode="date" :value="to" @change="to=$event.detail.value"><view class="ledger-date">{{ to }}</view></picker><button class="text-button" :disabled="loading" @click="query">查询</button></view>

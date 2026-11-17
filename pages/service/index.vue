@@ -1,5 +1,5 @@
 <template>
-  <AppShell page="24" title="门店服务" account-role="customer" public-page :home="canOrder">
+  <AppShell page="24" title="门店服务" account-role="customer" public-page>
     <view class="service-home">
       <text class="service-heading">欢迎来到门店</text>
       <text class="service-intro">{{ canOrder ? '扫描包厢码点餐，查看订单，或进入工作人员工作台。' : '查看已有订单，或进入工作人员工作台。' }}</text>

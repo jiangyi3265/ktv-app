@@ -1,7 +1,6 @@
 <template>
 	<AppShell
 		:page="page"
-		:home="page === '09' && !DESIGN_MODE"
 		:scroll-key="page === '09' ? 'workbench' : order.id + order.status"
 		:title="
 			page === '09'
@@ -24,7 +23,6 @@
 		"
 		:tabs="page === '09' ? 'supplier' : undefined"
 		:active-tab="filter === 'completed' ? '09-completed' : '09'"
-		:back-to="page !== '09' ? '09' : undefined"
 	>
 		<view v-if="page === '09'" class="page-body supplier-body">
 			<StaffNotifications v-if="!DESIGN_MODE" />

@@ -2,7 +2,6 @@
 	<AppShell
 		:page="page"
 		title="包厢点餐"
-		align="left"
 		tabs="customer"
 		active-tab="01"
 		content-class="catalog-scroll"
@@ -118,12 +117,12 @@
 			<view
 				v-if="cartOpen"
 				class="overlay"
-				@click.self="cartOpen = false"
+				@click.self="closeCart"
 			>
 				<view class="bottom-sheet cart-sheet">
 					<view class="sheet-handle" />
-					<view class="sheet-heading"
-						><text>已选餐品</text
+					<view class="sheet-heading cart-sheet-heading"
+						><button class="cart-return" aria-label="返回点餐" @click="closeCart"><AppIcon name="chevron-left" :size="20" /><text>返回</text></button><text>已选餐品</text
 						><button class="muted" @click="clearCart">
 							清空
 						</button></view
@@ -171,7 +170,7 @@
 							color="gray"
 							:size="35"
 						/><text>还没有选择餐品</text
-						><button class="text-button" @click="cartOpen = false">
+						><button class="text-button" @click="closeCart">
 							去看看菜单
 						</button></view
 					>
@@ -208,7 +207,7 @@ provide("artboard", 1);
 import AppShell from "../components/AppShell.vue";
 import AppIcon from "../components/AppIcon.vue";
 import FoodImage from "../components/FoodImage.vue";
-import { go } from "../common/pages";
+import { go, back } from "../common/pages";
 import {
 	state,
 	cartItems,
@@ -226,6 +225,10 @@ provide(
 	computed(() => props.page),
 );
 const cartOpen = ref(props.page === "02");
+function closeCart() {
+	if (props.page === "02") back("01");
+	else cartOpen.value = false;
+}
 const search = ref("");
 const selectedCategory = ref("推荐");
 async function checkout() {
@@ -265,3 +268,9 @@ const products = computed(() =>
 	),
 );
 </script>
+
+<style>
+.phone-screen .cart-sheet-heading { gap: 10px; }
+.phone-screen .cart-sheet-heading > text { flex: 1; }
+.phone-screen .cart-sheet-heading .cart-return { min-width: 64px; min-height: 44px; display: flex; align-items: center; justify-content: flex-start; gap: 2px; font-size: 14px; color: var(--ink); }
+</style>

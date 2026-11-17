@@ -2,14 +2,6 @@
 	<AppShell
 		:page="page"
 		:title="titles[page]"
-		:align="page === '18' ? 'left' : 'center'"
-		:back-to="
-			['19', '21', '22'].includes(page)
-				? page === '19'
-					? '18'
-					: '20'
-				: undefined
-		"
 		:tabs="['18', '20'].includes(page) ? 'admin' : undefined"
 		:active-tab="page === '18' ? '18' : '20'"
 	>
