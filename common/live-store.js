@@ -41,6 +41,7 @@ export const connection = reactive({
 	pending: false,
 	demoPayment: false,
 	wechatPayment: false,
+	orderingEnabled: false,
 	hasMoreOrders: false,
 });
 let revision = -1,
@@ -64,6 +65,7 @@ function invalidateContext() {
 	connection.hasMoreOrders = false;
 	connection.demoPayment = false;
 	connection.wechatPayment = false;
+	connection.orderingEnabled = false;
 	state.customerId = "";
 	state.supplierId = "";
 	state.orderDetail = null;
@@ -129,6 +131,8 @@ function apply(data, role, epoch) {
 	if (role === "supplier") state.supplierId = data.subject;
 	connection.demoPayment = data.demoPayment;
 	connection.wechatPayment = data.wechatPayment;
+	connection.orderingEnabled = data.orderingEnabled === true;
+	if (role === "customer" && !connection.orderingEnabled && Object.keys(state.cart).length) { state.cart = {}; persist(); }
 	state.orderDetail = data.orderDetail || null;
 	state.orderCounts = data.orderCounts || {};
 	state.orderAlerts = data.orderAlerts || [];
@@ -382,6 +386,7 @@ export const visibleSupplierOrders = computed(() =>
 	connection.role === "supplier" ? state.orders : [],
 );
 export async function createUnpaidOrder() {
+	if (!connection.orderingEnabled) throw new Error("点餐服务已暂停，暂时不能下单");
 	requireRoom(state);
 	if (!cartItems.value.length) throw new Error("请先选择餐品");
 	const room = state.room,

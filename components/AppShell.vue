@@ -67,7 +67,7 @@
 				}"
 			>
 				<button
-					v-if="backTo"
+					v-if="backTo && !orderingClosed"
 					class="icon-button back-button"
 					aria-label="返回"
 					@click="back(backTo)"
@@ -75,13 +75,13 @@
 					<AppIcon name="chevron-left" :size="25" />
 				</button>
 				<view class="topbar-title"
-					><text>{{ title }}</text
+					><text>{{ orderingClosed ? '门店服务' : title }}</text
 					><text v-if="subtitle" class="topbar-subtitle">{{
 						subtitle
 					}}</text></view
 				>
 				<view
-					v-if="DESIGN_MODE || connection.ready"
+					v-if="!orderingClosed && (DESIGN_MODE || connection.ready)"
 					class="topbar-action"
 					><slot name="header-action"
 				/></view>
@@ -106,7 +106,7 @@
 				><button @click="retry">重试</button></view
 			>
 			<scroll-view
-				v-if="DESIGN_MODE || connection.ready"
+				v-if="!orderingClosed && (DESIGN_MODE || connection.ready)"
 				scroll-y
 				:show-scrollbar="false"
 				class="page-scroll"
@@ -114,8 +114,14 @@
 				:key="scrollKey"
 				><slot
 			/></scroll-view>
+			<view v-if="orderingClosed && connection.ready" class="ordering-paused">
+				<view class="paused-symbol"><AppIcon name="info-circle" :size="36" color="orange" /></view>
+				<text class="paused-title">暂停营业</text>
+				<text class="paused-description">{{ '门店暂未开放在线点餐。\n已有订单仍可查看进度或联系商家处理。' }}</text>
+				<button class="primary-button" @click="go('06')">查看我的订单</button>
+			</view>
 			<view
-				v-if="$slots.footer && (DESIGN_MODE || connection.ready)"
+				v-if="!orderingClosed && $slots.footer && (DESIGN_MODE || connection.ready)"
 				class="page-footer"
 				><slot name="footer"
 			/></view>
@@ -141,12 +147,12 @@
 			<!-- #ifndef H5 -->
 			<view
 				v-if="
-					!tabs && $slots.footer && (DESIGN_MODE || connection.ready)
+						!orderingClosed && !tabs && $slots.footer && (DESIGN_MODE || connection.ready)
 				"
 				:style="{ height: safeBottom + 'px', flexShrink: 0 }"
 			/>
 			<!-- #endif -->
-			<slot v-if="DESIGN_MODE || connection.ready" name="overlay" />
+			<slot v-if="!orderingClosed && (DESIGN_MODE || connection.ready)" name="overlay" />
 		</view>
 		<!-- #ifdef H5 -->
 		<view class="review-current"
@@ -229,6 +235,8 @@ const role = computed(
 				? "supplier"
 				: "admin"),
 );
+const orderingClosed = computed(() => !DESIGN_MODE && role.value === "customer" &&
+	["01", "02", "03", "04"].includes(props.page) && !connection.orderingEnabled);
 watch(
 	role,
 	(value) => {
@@ -265,7 +273,7 @@ const board = computed(() =>
 const navItems = computed(() =>
 	props.tabs === "customer"
 		? [
-				{ id: "01", label: "点餐", icon: "tools-kitchen-2" },
+				{ id: "01", label: !DESIGN_MODE && !connection.orderingEnabled ? "首页" : "点餐", icon: !DESIGN_MODE && !connection.orderingEnabled ? "home" : "tools-kitchen-2" },
 				{ id: "06", label: "我的订单", icon: "receipt" },
 			]
 		: props.tabs === "supplier"
@@ -286,6 +294,11 @@ const navItems = computed(() =>
 );
 </script>
 <style>
+.ordering-paused { flex: 1; min-height: 0; padding: 48px 28px 32px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 18px; }
+.paused-symbol { width: 76px; height: 76px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #fff0e6; }
+.paused-title { color: #182326; font-size: 26px; font-weight: 700; }
+.paused-description { color: #6d777b; font-size: 15px; line-height: 1.8; white-space: pre-line; }
+.ordering-paused .primary-button { width: 100%; max-width: 280px; margin-top: 14px; }
 .phone-screen .topbar .session-exit {
 	position: absolute;
 	right: 10px;

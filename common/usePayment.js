@@ -10,6 +10,7 @@ export function usePayment() {
 		if (paying.value) return;
 		paying.value = true;
 		try {
+			if (!DESIGN_MODE && !connection.orderingEnabled) throw new Error("点餐服务已暂停，暂时不能支付");
 			if (!DESIGN_MODE && !connection.wechatPayment && !connection.demoPayment)
 				throw new Error("尚未配置微信支付，请联系 KTV");
 			const order = await resolveOrder();

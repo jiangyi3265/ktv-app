@@ -62,6 +62,21 @@ function runtime(platform) {
 }
 
 for (const platform of ['H5', 'MP-WEIXIN']) {
+  test(platform + ': store closure clears cart, preserves history and blocks stale checkout', async () => {
+    const r = runtime(platform); await r.boot('customer', fixture('customer', { orderingEnabled: true, orders: [{id:'existing'}] }));
+    r.store.state.cart = { chicken: 2 };
+    const refresh = r.store.refresh(); (await r.stateRequest()).resolve(fixture('customer', { revision:2, orderingEnabled:false, orders:[{id:'existing'}] })); await refresh;
+    assert.equal(r.store.connection.orderingEnabled, false); assert.equal(Object.keys(r.store.state.cart).length, 0);
+    assert.equal(r.store.state.orders[0].id, 'existing'); assert.equal(Object.keys(r.storage.get('ktv-local-v1').cart).length, 0);
+    await assert.rejects(r.store.createUnpaidOrder(), /暂停/);
+    const reopen = r.store.refresh(); (await r.stateRequest()).resolve(fixture('customer', { revision:3, orderingEnabled:true })); await reopen;
+    assert.equal(r.store.connection.orderingEnabled, true);
+  });
+  test(platform + ': missing business status fails closed and role changes clear prior status', async () => {
+    const r = runtime(platform); await r.boot('customer'); assert.equal(r.store.connection.orderingEnabled, false);
+    await r.boot('admin', fixture('admin', { orderingEnabled:true }));
+    await r.store.activate('supplier'); assert.equal(r.store.connection.orderingEnabled, false);
+  });
   test(platform + ': PC administrator credentials use shared PC login and retain the PC session', async () => {
     const r = runtime(platform); await r.store.activate('admin');
     const login = r.store.login('admin', 'fixture-password', 'admin');

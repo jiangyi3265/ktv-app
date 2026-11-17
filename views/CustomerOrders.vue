@@ -13,7 +13,7 @@
 			class="empty-state"
 			><text>暂无这笔订单</text
 			><button class="primary-button" @click="go('01')">
-				去点餐
+				{{ canOrder ? '去点餐' : '返回首页' }}
 			</button></view
 		>
 		<view
@@ -77,7 +77,7 @@
 				@click="go('07', { id: currentOrder.id })"
 			>
 				查看订单</button
-			><button class="outline-button" @click="go('01')">继续点餐</button>
+			><button class="outline-button" @click="go('01')">{{ canOrder ? '继续点餐' : '返回首页' }}</button>
 			<StaffNotifications v-if="!DESIGN_MODE" />
 		</view>
 		<view v-else-if="page === '06'" class="page-body orders-body">
@@ -167,12 +167,12 @@
 								: 'outline-button'
 						"
 						class="button-sm"
-						:disabled="paying"
+						:disabled="paying || (!canOrder && order.status === 'unpaid')"
 						@click="openOrder(order)"
 					>
 						{{
 							order.status === "unpaid"
-								? "继续支付"
+								? (canOrder ? "继续支付" : "暂停支付")
 								: order.status === "completed"
 									? "查看详情"
 									: "查看进度"
@@ -190,7 +190,7 @@
 								)?.label
 					}}订单</text
 				><button class="primary-button" @click="go('01')">
-					去点餐
+					{{ canOrder ? '去点餐' : '返回首页' }}
 				</button></view
 			>
 		</view>
@@ -327,7 +327,7 @@
 			v-if="
 				['07', '08'].includes(page) &&
 				(DESIGN_MODE || currentOrder.id) &&
-				(completed || status === 'unpaid')
+				canOrder && (completed || status === 'unpaid')
 			"
 			#footer
 			><button
@@ -359,12 +359,14 @@ import {
 	orderCount,
 	persist,
 	DESIGN_MODE,
+	connection,
 	emptyOrder,
 	cancelOrder,
 } from "../common/store";
 import { STATUS } from "../common/domain.mjs";
 import { usePayment } from "../common/usePayment";
 const { paying, pay } = usePayment();
+const canOrder = computed(() => DESIGN_MODE || connection.orderingEnabled);
 import { go, toast } from "../common/pages";
 import { useOrderFilter } from "../common/useOrderFilter";
 const props = defineProps({ page: String, query: Object });
