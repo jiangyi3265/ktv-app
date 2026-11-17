@@ -18,6 +18,9 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   };
   try {
     await cdp.sendCommand('DOM', 'enable', {});
+    const compiledEndpoint = await m.evaluate(() => require('common/api.js').apiUrl('/ktv-api/notifications/status'));
+    assert.match(compiledEndpoint, /^https:\/\/[^/]+\/ktv-api\/notifications\/status$/, 'Native build must use an absolute HTTPS API before mocking transport');
+    checks.push('compiled-api-uses-https');
     await m.mockWxMethod('login', { code: 'fixture-notice-code', errMsg: 'login:ok' });
     await m.mockWxMethod('requestSubscribeMessage', { 'fixture-staff': 'accept', 'fixture-customer': 'accept', errMsg: 'requestSubscribeMessage:ok' });
     await m.evaluate(() => {
@@ -74,7 +77,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     const counts = await m.evaluate(() => getApp().__noticeCalls.filter(c => c.url === '/notifications/subscribe').map(c => c.role));
     assert.deepEqual(counts, ['customer', 'supplier', 'admin', 'admin']);
     assert.deepEqual(await m.evaluate(() => getApp().__noticeUnexpected), []); assert.deepEqual(errors, []);
-    const report = { nativeBuild: '1.0.8', checks, errors, transportMocked: true, realNotificationSent: false };
+    const report = { nativeBuild: JSON.parse(fs.readFileSync(path.join(__dirname, '../package.json'), 'utf8')).version, checks, errors, transportMocked: true, realNotificationSent: false };
     fs.writeFileSync(path.resolve(output, 'report.json'), JSON.stringify(report, null, 2)); console.log(JSON.stringify(report));
   } finally {
     await m.evaluate(() => { const app = getApp(), s = require('common/store.js'); s.state.foreground = false; s.pauseSync(); if (app.__noticeOriginal) require('common/api.js').request = app.__noticeOriginal; for (const role of ['supplier', 'customer', 'admin']) wx.removeStorageSync('ktv-session-' + role + '-v1'); }).catch(() => {});
