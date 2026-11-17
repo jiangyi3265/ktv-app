@@ -24,6 +24,7 @@
 				:disabled="busy"
 				@confirm="submit"
 			/>
+			<text v-if="error || connection.error" class="form-error" role="alert">{{ error || connection.error }}</text>
 			<button class="primary-button" :disabled="busy" @click="submit">
 				{{ busy ? "正在登录…" : "登录" }}
 			</button>
@@ -45,7 +46,7 @@
 				重新连接
 			</button>
 		</template>
-		<text v-if="error || connection.error" class="form-error">{{
+		<text v-if="!connection.needsLogin && (error || connection.error)" class="form-error" role="alert">{{
 			error || connection.error
 		}}</text>
 		<button v-if="role !== 'customer'" class="text-button" @click="goHome">返回首页</button>

@@ -74,7 +74,7 @@
 				>
 					<AppIcon name="chevron-left" :size="25" />
 				</button>
-				<button v-if="home && !orderingClosed" class="home-button" aria-label="返回首页" @click="goHome"><AppIcon name="chevron-left" :size="20" /><text>首页</text></button>
+				<button v-if="home && !orderingClosed" class="home-button" :aria-label="homeToOrdering ? '返回点餐' : '返回首页'" @click="returnHome"><AppIcon name="chevron-left" :size="20" /><text>{{ homeToOrdering ? '点餐' : '首页' }}</text></button>
 				<view class="topbar-title"
 					><text>{{ orderingClosed ? '门店服务' : title }}</text
 					><text v-if="subtitle" class="topbar-subtitle">{{
@@ -235,6 +235,11 @@ const role = computed(
 );
 const orderingClosed = computed(() => !DESIGN_MODE && role.value === "customer" &&
 	["01", "02", "03", "04"].includes(props.page) && !connection.orderingEnabled);
+const homeToOrdering = computed(() => role.value === "customer" && connection.ready && connection.orderingEnabled);
+function returnHome() {
+	if (homeToOrdering.value) uni.reLaunch({ url: "/pages/index/index" });
+	else goHome();
+}
 watch(
 	role,
 	(value) => {

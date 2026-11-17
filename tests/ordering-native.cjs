@@ -4,7 +4,7 @@ const output = process.env.KTV_TEST_OUTPUT || '.local/ordering-native';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 (async () => {
   fs.mkdirSync(output, { recursive: true });
-  const m = await auto.connect({ wsEndpoint: process.env.KTV_AUTOMATOR_WS || 'ws://127.0.0.1:9454' });
+  const m = await auto.connect({ wsEndpoint: process.env.KTV_AUTOMATOR_WS || 'ws://127.0.0.1:9456' });
   const cdp = m.CDP(), errors = [], checks = [];
   m.on('exception', e => errors.push(e.message || String(e)));
   const flatten = n => [n, ...(n.children || []).flatMap(flatten)];
@@ -52,6 +52,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
     await m.reLaunch('/pages/customer/orders');await until(()=>visible('食堂登录'),'old order deep link');await tap('首页');await until(async()=> (await m.currentPage()).path==='pages/service/index','orders home button');checks.push('old-orders-have-working-home-button');
     await m.evaluate(async()=>{const app=getApp();app.__orderingEnabled=true;app.__orderingRevision++;await require('common/store.js').refresh()});
     await until(()=>visible('进入点餐'),'reopened navigation');await m.reLaunch('/pages/index/index');await until(()=>visible('好好吃饭，尽兴开唱'),'reopened original menu');checks.push('reopen-restores-menu');
+    await m.reLaunch('/pages/customer/orders');await until(()=>visible('食堂登录'),'reopened orders');await tap('点餐');await until(async()=> (await m.currentPage()).path==='pages/index/index','orders return directly to menu');checks.push('open-orders-return-directly-to-menu');
+    await m.reLaunch('/pages/service/index');await until(()=>visible('进入点餐'),'saved service entry');await tap('点餐');await until(async()=> (await m.currentPage()).path==='pages/index/index','service home returns directly to menu');checks.push('saved-service-page-has-menu-navigation');
     await m.evaluate(()=>{require('common/store.js').state.cart={chicken:1}});
     await m.reLaunch('/pages/customer/cart');
     await m.evaluate(async()=>{const app=getApp();app.__orderingEnabled=false;app.__orderingRevision++;await require('common/store.js').refresh()});

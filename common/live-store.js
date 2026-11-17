@@ -283,6 +283,9 @@ export function activate(role) {
 	return boot;
 }
 export async function login(username, password, role = connection.role) {
+	username = typeof username === "string" ? username.trim() : "";
+	if (!username) throw new Error(role === "supplier" ? "请输入食堂账号编号，例如 A01" : "请输入管理员账号");
+	if (typeof password !== "string" || !password.length) throw new Error("请输入登录密码");
 	const epoch = generation, attempt = ++loginSequence;
 	const current = await request(role === "admin" && username !== "ktv-admin" ? "/sessions/pc-admin" : "/sessions/staff", {
 		method: "POST",

@@ -1,9 +1,9 @@
 <template>
-  <AppShell page="24" title="门店服务" account-role="customer" public-page>
+  <AppShell page="24" title="门店服务" account-role="customer" public-page :home="canOrder">
     <view class="service-home">
       <text class="service-heading">欢迎来到门店</text>
-      <text class="service-intro">查看已有订单，或进入工作人员工作台。</text>
-      <button v-if="connection.ready && connection.role === 'customer' && connection.orderingEnabled" class="primary-button service-order" @click="go('01')">进入点餐</button>
+      <text class="service-intro">{{ canOrder ? '扫描包厢码点餐，查看订单，或进入工作人员工作台。' : '查看已有订单，或进入工作人员工作台。' }}</text>
+      <button v-if="canOrder" class="primary-button service-order" @click="go('01', {}, { replace: true })">进入点餐</button>
       <button class="service-orders" @click="go('06')">
         <AppIcon name="receipt" :size="30" color="orange" />
         <view class="service-copy"><text class="service-title">查看我的订单</text><text class="service-description">查看订单进度与退款记录</text></view>
@@ -27,10 +27,12 @@
   </AppShell>
 </template>
 <script setup>
+import { computed } from 'vue';
 import AppShell from '../../components/AppShell.vue';
 import AppIcon from '../../components/AppIcon.vue';
 import { connection } from '../../common/store';
 import { go } from '../../common/pages';
+const canOrder = computed(() => connection.ready && connection.role === 'customer' && connection.orderingEnabled);
 </script>
 <style scoped>
 .service-home { padding: 30px 20px 36px; color: var(--ink); }

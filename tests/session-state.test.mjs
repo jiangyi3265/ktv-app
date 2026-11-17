@@ -62,6 +62,20 @@ function runtime(platform) {
 }
 
 for (const platform of ['H5', 'MP-WEIXIN']) {
+  test(platform + ': empty staff credentials show actionable errors without sending login requests', async () => {
+    const r = runtime(platform); await r.store.activate('supplier');
+    await assert.rejects(r.store.login('  ', 'fixture-password', 'supplier'), /请输入食堂账号编号/);
+    await assert.rejects(r.store.login('A01', '', 'supplier'), /请输入登录密码/);
+    await assert.rejects(r.store.login('', 'fixture-password', 'admin'), /请输入管理员账号/);
+    assert.equal(r.jobs.length, 0);
+    assert.equal(r.store.connection.needsLogin, true);
+    const task = r.store.login('  A01  ', 'fixture-password', 'supplier');
+    const request = await r.next(x => x.path === '/sessions/staff');
+    assert.equal(request.options.data.username, 'A01');
+    request.resolve({ role: 'supplier', token: 'fixture-supplier' });
+    (await r.stateRequest()).resolve(fixture('supplier')); await task;
+    assert.equal(r.store.connection.ready, true);
+  });
   test(platform + ': store closure clears cart, preserves history and blocks stale checkout', async () => {
     const r = runtime(platform); await r.boot('customer', fixture('customer', { orderingEnabled: true, orders: [{id:'existing'}] }));
     r.store.state.cart = { chicken: 2 };
