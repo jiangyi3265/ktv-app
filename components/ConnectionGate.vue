@@ -48,13 +48,13 @@
 		<text v-if="error || connection.error" class="form-error">{{
 			error || connection.error
 		}}</text>
-		<button v-if="role !== 'customer'" class="text-button" @click="go('06')">返回我的订单</button>
+		<button v-if="role !== 'customer'" class="text-button" @click="goHome">返回首页</button>
 	</view>
 </template>
 <script setup>
 import { ref } from "vue";
 import { connection, login, activate } from "../common/store";
-import { go } from "../common/pages";
+import { goHome } from "../common/pages";
 const props = defineProps({ role: String });
 const username = ref(""),
 	password = ref(""),

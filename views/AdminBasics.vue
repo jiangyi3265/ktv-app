@@ -1,6 +1,7 @@
 <template>
 	<AppShell
 		:page="page"
+		:home="page === '13' && !DESIGN_MODE"
 		:title="titles[page]"
 		:align="page === '13' ? 'left' : 'center'"
 		:back-to="page !== '13' ? '13' : undefined"

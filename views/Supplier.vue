@@ -1,6 +1,7 @@
 <template>
 	<AppShell
 		:page="page"
+		:home="page === '09' && !DESIGN_MODE"
 		:scroll-key="page === '09' ? 'workbench' : order.id + order.status"
 		:title="
 			page === '09'

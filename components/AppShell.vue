@@ -62,20 +62,21 @@
 			<view
 				class="topbar"
 				:class="{
-					'topbar-left': align === 'left',
+					'topbar-left': align === 'left' && !home,
 					'has-subtitle': subtitle,
 				}"
 			>
 				<button
-					v-if="backTo && !orderingClosed"
+					v-if="backTo && !home && !orderingClosed"
 					class="icon-button back-button"
 					aria-label="返回"
 					@click="back(backTo)"
 				>
 					<AppIcon name="chevron-left" :size="25" />
 				</button>
+				<button v-if="home && !orderingClosed" class="home-button" aria-label="返回首页" @click="goHome"><AppIcon name="chevron-left" :size="20" /><text>首页</text></button>
 				<view class="topbar-title"
-					><text>{{ orderingClosed ? '我的订单' : title }}</text
+					><text>{{ orderingClosed ? '门店服务' : title }}</text
 					><text v-if="subtitle" class="topbar-subtitle">{{
 						subtitle
 					}}</text></view
@@ -96,7 +97,7 @@
 				</button>
 			</view>
 			<ConnectionGate
-				v-if="!DESIGN_MODE && !connection.ready"
+				v-if="!DESIGN_MODE && !connection.ready && !publicPage"
 				:role="role"
 			/>
 			<view
@@ -106,7 +107,7 @@
 				><button @click="retry">重试</button></view
 			>
 			<scroll-view
-				v-if="!orderingClosed && (DESIGN_MODE || connection.ready)"
+				v-if="!orderingClosed && (DESIGN_MODE || connection.ready || publicPage)"
 				scroll-y
 				:show-scrollbar="false"
 				class="page-scroll"
@@ -169,7 +170,7 @@ import {
 	refresh,
 } from "../common/store";
 import AppIcon from "./AppIcon.vue";
-import { designPages, go, back } from "../common/pages";
+import { designPages, go, back, goHome } from "../common/pages";
 const props = defineProps({
 	page: String,
 	title: String,
@@ -181,6 +182,8 @@ const props = defineProps({
 	scrollKey: String,
 	align: { type: String, default: "center" },
 	accountRole: String,
+	home: Boolean,
+	publicPage: Boolean,
 });
 const windowStyle = ref({});
 const statusHeight = ref(0);
@@ -248,7 +251,7 @@ function redirectClosedOrdering() {
 	const current = getCurrentPages().slice(-1)[0];
 	if (current?.route !== designPages.find(item => item.id === props.page)?.path) return;
 	redirecting = true;
-	uni.redirectTo({ url: "/pages/customer/orders", complete: () => { redirecting = false; } });
+	uni.redirectTo({ url: "/pages/service/index", complete: () => { redirecting = false; } });
 }
 watch(() => [orderingClosed.value, connection.ready, connection.role], redirectClosedOrdering, { flush: "post" });
 onShow(() => {
@@ -311,6 +314,7 @@ const navItems = computed(() =>
 );
 </script>
 <style>
+.phone-screen .topbar .home-button { position: absolute; left: 12px; bottom: 4px; min-width: 56px; height: 44px; display: flex; align-items: center; font-size: 14px; gap: 2px; color: var(--ink); }
 .phone-screen .topbar .session-exit {
 	position: absolute;
 	right: 10px;

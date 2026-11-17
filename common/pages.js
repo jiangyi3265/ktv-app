@@ -22,6 +22,7 @@ export const designPages = [
 	["21", "权限与订单分配", "pages/admin/permissions", "订单与权限"],
 	["22", "支付配置与状态记录", "pages/admin/payment", "订单与权限"],
 	["23", "收款记录", "pages/supplier/ledger", "食堂与配送"],
+	["24", "门店服务", "pages/service/index", "门店服务"],
 ].map(([id, title, path, group]) => ({ id, title, path, group }));
 
 export function go(id, query = {}, { replace = false } = {}) {
@@ -39,6 +40,10 @@ export function go(id, query = {}, { replace = false } = {}) {
 	const pages = getCurrentPages();
 	if (replace || pages.length >= 8) uni.redirectTo({ url });
 	else uni.navigateTo({ url });
+}
+
+export function goHome() {
+	uni.reLaunch({ url: "/pages/service/index" });
 }
 
 export function back(fallback = "01") {

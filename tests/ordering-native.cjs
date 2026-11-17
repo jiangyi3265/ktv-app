@@ -4,7 +4,7 @@ const output = process.env.KTV_TEST_OUTPUT || '.local/ordering-native';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 (async () => {
   fs.mkdirSync(output, { recursive: true });
-  const m = await auto.connect({ wsEndpoint: process.env.KTV_AUTOMATOR_WS || 'ws://127.0.0.1:9453' });
+  const m = await auto.connect({ wsEndpoint: process.env.KTV_AUTOMATOR_WS || 'ws://127.0.0.1:9454' });
   const cdp = m.CDP(), errors = [], checks = [];
   m.on('exception', e => errors.push(e.message || String(e)));
   const flatten = n => [n, ...(n.children || []).flatMap(flatten)];
@@ -17,6 +17,11 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       try {const box=(await cdp.sendCommand('DOM','getBoxModel',{nodeId:n.parentId})).model;if(box.width>0&&box.height>0)return true;}catch{}
     }
     return false;
+  };
+  const tap = async label => {
+    await until(async () => (await tree()).some(n => n.nodeName === 'button' && text(n).trim() === label), label);
+    const n = (await tree()).find(n => n.nodeName === 'button' && text(n).trim() === label);
+    await cdp.sendCommand('MDPElement', 'tap', { nodeId: n.nodeId });
   };
   try {
     await cdp.sendCommand('DOM', 'enable', {});
@@ -36,20 +41,21 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       };
     });
     for(const target of ['pages/index/index','pages/customer/cart','pages/customer/checkout','pages/customer/payment']) {
-      await m.reLaunch('/'+target);await until(async()=> (await m.currentPage()).path==='pages/customer/orders' && await visible('食堂登录'),target+' redirects');
+      await m.reLaunch('/'+target);await until(async()=> (await m.currentPage()).path==='pages/service/index' && await visible('食堂接单'),target+' redirects');
       for(const label of ['暂停营业','点餐','去点餐','返回首页']) assert(!(await visible(label)),label+' hidden');
       assert(!(await visible('好好吃饭，尽兴开唱')));assert(!(await visible('确认并支付')));
       checks.push(target+'-closed');
       console.log('Verified hidden ordering route:', target);
     }
-    await m.reLaunch('/pages/index/index');await until(async()=> (await m.currentPage()).path==='pages/customer/orders' && await visible('商家管理'),'home redirects');
+    await m.reLaunch('/pages/index/index');await until(async()=> (await m.currentPage()).path==='pages/service/index' && await visible('商家管理'),'home redirects');
     await m.screenshot({path:path.resolve(output,'closed.png')});
+    await m.reLaunch('/pages/customer/orders');await until(()=>visible('食堂登录'),'old order deep link');await tap('首页');await until(async()=> (await m.currentPage()).path==='pages/service/index','orders home button');checks.push('old-orders-have-working-home-button');
     await m.evaluate(async()=>{const app=getApp();app.__orderingEnabled=true;app.__orderingRevision++;await require('common/store.js').refresh()});
-    await until(()=>visible('点餐'),'reopened navigation');await m.reLaunch('/pages/index/index');await until(()=>visible('好好吃饭，尽兴开唱'),'reopened original menu');checks.push('reopen-restores-menu');
+    await until(()=>visible('进入点餐'),'reopened navigation');await m.reLaunch('/pages/index/index');await until(()=>visible('好好吃饭，尽兴开唱'),'reopened original menu');checks.push('reopen-restores-menu');
     await m.evaluate(()=>{require('common/store.js').state.cart={chicken:1}});
     await m.reLaunch('/pages/customer/cart');
     await m.evaluate(async()=>{const app=getApp();app.__orderingEnabled=false;app.__orderingRevision++;await require('common/store.js').refresh()});
-    await until(async()=> (await m.currentPage()).path==='pages/customer/orders' && await visible('食堂登录'),'close while cart open');
+    await until(async()=> (await m.currentPage()).path==='pages/service/index' && await visible('食堂接单'),'close while cart open');
     assert.equal(await m.evaluate(()=>Object.keys(require('common/store.js').state.cart).length),0);checks.push('close-hides-cart-and-clears-selection');
     await m.reLaunch('/pages/customer/orders');await until(()=>visible('食堂登录'),'staff access');assert(await visible('商家管理'));checks.push('history-and-staff-access-remain');
     await m.callWxMethod('navigateTo',{url:'/pages/supplier/workbench'});await until(async()=> (await m.currentPage()).path==='pages/supplier/workbench','supplier route');await sleep(1200);assert.equal((await m.currentPage()).path,'pages/supplier/workbench');checks.push('hidden-customer-page-cannot-redirect-staff');

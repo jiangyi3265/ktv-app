@@ -8,6 +8,7 @@
 				"disableScroll": true
 			}
 		},
+		{ "path": "pages/service/index", "style": { "navigationStyle": "custom", "navigationBarTitleText": "门店服务", "disableScroll": true } },
 		{
 			"path": "pages/customer/cart",
 			"style": {

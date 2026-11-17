@@ -6,6 +6,7 @@
 		"
 		:tabs="['05', '06'].includes(page) ? 'customer' : undefined"
 		active-tab="06"
+		:home="page === '06' && !DESIGN_MODE"
 		:back-to="['07', '08'].includes(page) ? '06' : undefined"
 	>
 		<view
