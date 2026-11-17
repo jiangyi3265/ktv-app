@@ -4,7 +4,7 @@ const output = process.env.KTV_TEST_OUTPUT || '.local/ordering-native';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 (async () => {
   fs.mkdirSync(output, { recursive: true });
-  const m = await auto.connect({ wsEndpoint: process.env.KTV_AUTOMATOR_WS || 'ws://127.0.0.1:9452' });
+  const m = await auto.connect({ wsEndpoint: process.env.KTV_AUTOMATOR_WS || 'ws://127.0.0.1:9453' });
   const cdp = m.CDP(), errors = [], checks = [];
   m.on('exception', e => errors.push(e.message || String(e)));
   const flatten = n => [n, ...(n.children || []).flatMap(flatten)];
@@ -36,21 +36,24 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       };
     });
     for(const target of ['pages/index/index','pages/customer/cart','pages/customer/checkout','pages/customer/payment']) {
-      await m.reLaunch('/'+target);await until(()=>visible('暂停营业'),target+' closed');
+      await m.reLaunch('/'+target);await until(async()=> (await m.currentPage()).path==='pages/customer/orders' && await visible('食堂登录'),target+' redirects');
+      for(const label of ['暂停营业','点餐','去点餐','返回首页']) assert(!(await visible(label)),label+' hidden');
       assert(!(await visible('好好吃饭，尽兴开唱')));assert(!(await visible('确认并支付')));
       checks.push(target+'-closed');
-      console.log('Verified native pause:', target);
+      console.log('Verified hidden ordering route:', target);
     }
-    await m.reLaunch('/pages/index/index');await until(()=>visible('暂停营业'),'home closed');
+    await m.reLaunch('/pages/index/index');await until(async()=> (await m.currentPage()).path==='pages/customer/orders' && await visible('商家管理'),'home redirects');
     await m.screenshot({path:path.resolve(output,'closed.png')});
     await m.evaluate(async()=>{const app=getApp();app.__orderingEnabled=true;app.__orderingRevision++;await require('common/store.js').refresh()});
-    await until(()=>visible('好好吃饭，尽兴开唱'),'reopened original menu');checks.push('reopen-restores-menu');
+    await until(()=>visible('点餐'),'reopened navigation');await m.reLaunch('/pages/index/index');await until(()=>visible('好好吃饭，尽兴开唱'),'reopened original menu');checks.push('reopen-restores-menu');
     await m.evaluate(()=>{require('common/store.js').state.cart={chicken:1}});
     await m.reLaunch('/pages/customer/cart');
     await m.evaluate(async()=>{const app=getApp();app.__orderingEnabled=false;app.__orderingRevision++;await require('common/store.js').refresh()});
-    await until(()=>visible('暂停营业'),'close while cart open');
+    await until(async()=> (await m.currentPage()).path==='pages/customer/orders' && await visible('食堂登录'),'close while cart open');
     assert.equal(await m.evaluate(()=>Object.keys(require('common/store.js').state.cart).length),0);checks.push('close-hides-cart-and-clears-selection');
     await m.reLaunch('/pages/customer/orders');await until(()=>visible('食堂登录'),'staff access');assert(await visible('商家管理'));checks.push('history-and-staff-access-remain');
+    await m.callWxMethod('navigateTo',{url:'/pages/supplier/workbench'});await until(async()=> (await m.currentPage()).path==='pages/supplier/workbench','supplier route');await sleep(1200);assert.equal((await m.currentPage()).path,'pages/supplier/workbench');checks.push('hidden-customer-page-cannot-redirect-staff');
+    await m.callWxMethod('navigateBack');await until(()=>visible('食堂登录'),'return to customer history');checks.push('back-navigation-remains-usable');
     assert.deepEqual(await m.evaluate(()=>getApp().__orderingUnexpected),[]);assert.deepEqual(errors,[]);
     const report={version:JSON.parse(fs.readFileSync(path.join(__dirname,'../package.json'),'utf8')).version,checks,errors,transportMocked:true,realOrdersChanged:false};
     fs.writeFileSync(path.resolve(output,'report.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report));

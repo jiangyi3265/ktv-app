@@ -13,11 +13,11 @@
 				DESIGN_MODE ? "设计还原 · 22 个页面" : "顾客 · 食堂 · KTV 管理"
 			}}</text>
 			<scroll-view scroll-y class="review-links">
-				<view v-for="(item, index) in designPages" :key="item.id">
+				<view v-for="(item, index) in visiblePages" :key="item.id">
 					<text
 						v-if="
 							index === 0 ||
-							item.group !== designPages[index - 1].group
+							item.group !== visiblePages[index - 1].group
 						"
 						class="review-group"
 						>{{ item.group }}</text
@@ -75,7 +75,7 @@
 					<AppIcon name="chevron-left" :size="25" />
 				</button>
 				<view class="topbar-title"
-					><text>{{ orderingClosed ? '门店服务' : title }}</text
+					><text>{{ orderingClosed ? '我的订单' : title }}</text
 					><text v-if="subtitle" class="topbar-subtitle">{{
 						subtitle
 					}}</text></view
@@ -114,19 +114,14 @@
 				:key="scrollKey"
 				><slot
 			/></scroll-view>
-			<view v-if="orderingClosed && connection.ready" class="ordering-paused">
-				<view class="paused-symbol"><AppIcon name="info-circle" :size="36" color="orange" /></view>
-				<text class="paused-title">暂停营业</text>
-				<text class="paused-description">{{ '门店暂未开放在线点餐。\n已有订单仍可查看进度或联系商家处理。' }}</text>
-				<button class="primary-button" @click="go('06')">查看我的订单</button>
-			</view>
+
 			<view
 				v-if="!orderingClosed && $slots.footer && (DESIGN_MODE || connection.ready)"
 				class="page-footer"
 				><slot name="footer"
 			/></view>
 			<view
-				v-if="tabs && (DESIGN_MODE || connection.ready)"
+				v-if="showTabs && (DESIGN_MODE || connection.ready)"
 				class="bottom-nav"
 			>
 				<button
@@ -163,8 +158,8 @@
 	</view>
 </template>
 <script setup>
-import { computed, watch, ref, onUnmounted } from "vue";
-import { onShow } from "@dcloudio/uni-app";
+import { computed, watch, ref, nextTick, onMounted, onUnmounted } from "vue";
+import { onShow, onHide } from "@dcloudio/uni-app";
 import ConnectionGate from "./ConnectionGate.vue";
 import {
 	DESIGN_MODE,
@@ -244,9 +239,31 @@ watch(
 	},
 	{ immediate: true },
 );
+const pageVisible = ref(false);
+let redirecting = false;
+function redirectClosedOrdering() {
+	if (!pageVisible.value || !orderingClosed.value || !connection.ready ||
+		connection.role !== "customer" || redirecting) return;
+	// Kept-alive pages must never redirect a different foreground page.
+	const current = getCurrentPages().slice(-1)[0];
+	if (current?.route !== designPages.find(item => item.id === props.page)?.path) return;
+	redirecting = true;
+	uni.redirectTo({ url: "/pages/customer/orders", complete: () => { redirecting = false; } });
+}
+watch(() => [orderingClosed.value, connection.ready, connection.role], redirectClosedOrdering, { flush: "post" });
 onShow(() => {
-	if (!DESIGN_MODE) activate(role.value);
+	pageVisible.value = true;
+	if (!DESIGN_MODE) {
+		activate(role.value);
+		nextTick(redirectClosedOrdering);
+	}
 });
+// H5 registers the parent page after child mount; wait for that registration.
+onMounted(() => { pageVisible.value = true; nextTick(redirectClosedOrdering); });
+onHide(() => { pageVisible.value = false; });
+const showTabs = computed(() => props.tabs && (props.tabs !== "customer" || DESIGN_MODE || connection.orderingEnabled));
+const visiblePages = computed(() => DESIGN_MODE || connection.orderingEnabled
+	? designPages : designPages.filter(item => Number(item.id) > 4));
 async function signOut() {
 	try {
 		await logout();
@@ -273,7 +290,7 @@ const board = computed(() =>
 const navItems = computed(() =>
 	props.tabs === "customer"
 		? [
-				{ id: "01", label: !DESIGN_MODE && !connection.orderingEnabled ? "首页" : "点餐", icon: !DESIGN_MODE && !connection.orderingEnabled ? "home" : "tools-kitchen-2" },
+				{ id: "01", label: "点餐", icon: "tools-kitchen-2" },
 				{ id: "06", label: "我的订单", icon: "receipt" },
 			]
 		: props.tabs === "supplier"
@@ -294,11 +311,6 @@ const navItems = computed(() =>
 );
 </script>
 <style>
-.ordering-paused { flex: 1; min-height: 0; padding: 48px 28px 32px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 18px; }
-.paused-symbol { width: 76px; height: 76px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #fff0e6; }
-.paused-title { color: #182326; font-size: 26px; font-weight: 700; }
-.paused-description { color: #6d777b; font-size: 15px; line-height: 1.8; white-space: pre-line; }
-.ordering-paused .primary-button { width: 100%; max-width: 280px; margin-top: 14px; }
 .phone-screen .topbar .session-exit {
 	position: absolute;
 	right: 10px;

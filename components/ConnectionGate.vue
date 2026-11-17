@@ -48,7 +48,7 @@
 		<text v-if="error || connection.error" class="form-error">{{
 			error || connection.error
 		}}</text>
-		<button v-if="role !== 'customer'" class="text-button" @click="go('01')">返回顾客点餐</button>
+		<button v-if="role !== 'customer'" class="text-button" @click="go('06')">返回我的订单</button>
 	</view>
 </template>
 <script setup>

@@ -12,8 +12,8 @@
 			v-if="!DESIGN_MODE && page !== '06' && !currentOrder.id"
 			class="empty-state"
 			><text>暂无这笔订单</text
-			><button class="primary-button" @click="go('01')">
-				{{ canOrder ? '去点餐' : '返回首页' }}
+			><button class="primary-button" @click="go(canOrder ? '01' : '06', {}, { replace: true })">
+				{{ canOrder ? '去点餐' : '查看我的订单' }}
 			</button></view
 		>
 		<view
@@ -77,7 +77,7 @@
 				@click="go('07', { id: currentOrder.id })"
 			>
 				查看订单</button
-			><button class="outline-button" @click="go('01')">{{ canOrder ? '继续点餐' : '返回首页' }}</button>
+			><button v-if="canOrder" class="outline-button" @click="go('01')">继续点餐</button>
 			<StaffNotifications v-if="!DESIGN_MODE" />
 		</view>
 		<view v-else-if="page === '06'" class="page-body orders-body">
@@ -189,8 +189,8 @@
 									(item) => item.key === filter,
 								)?.label
 					}}订单</text
-				><button class="primary-button" @click="go('01')">
-					{{ canOrder ? '去点餐' : '返回首页' }}
+				><button v-if="canOrder" class="primary-button" @click="go('01')">
+					去点餐
 				</button></view
 			>
 		</view>
