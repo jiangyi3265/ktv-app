@@ -30,12 +30,12 @@ const snapshot = role => ({ role, subject: role === 'admin' ? 'pc-1' : role === 
     const button = text => screen().locator('uni-button').filter({ hasText: new RegExp('^\\s*' + text + '\\s*$') });
     await page.goto(appOrigin + '/#/pages/customer/orders');
     await screen().getByText('订单进度提醒', { exact: true }).waitFor();
-    await screen().getByText('尚未连接微信提醒。', { exact: true }).waitFor();
+    await screen().getByText('暂无可用提醒次数，请点击下方按钮授权。', { exact: true }).waitFor();
     await button('商家管理').click(); await screen().getByText('电脑后台管理员登录', { exact: true }).waitFor();
     await screen().locator('.connection-gate input').first().fill('admin'); await screen().locator('.connection-gate input').nth(1).fill('fixture-password'); await button('登录').click();
     await screen().getByText('商家订单提醒', { exact: true }).waitFor(); assert(pcBearerSeen);
     await page.screenshot({ path: path.join(output, 'merchant-mobile.png'), fullPage: true }); checks.push('shared-pc-login');
-    await button('退出账号').click(); await button('返回顾客点餐').waitFor();
+    await button('退出账号').click(); await button('返回首页').waitFor();
     await page.goto(appOrigin + '/#/pages/customer/orders'); await button('食堂登录').click();
     await screen().locator('.connection-gate input').first().fill('A01'); await screen().locator('.connection-gate input').nth(1).fill('fixture-password'); await button('登录').click();
     await screen().getByText('接单提醒', { exact: true }).waitFor(); checks.push('supplier-entry');
