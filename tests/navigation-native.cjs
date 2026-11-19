@@ -42,6 +42,7 @@ const routes = [
       app.__navOriginal=api.request;app.__navBefore={};app.__navEnabled=true;app.__navRevision=1;app.__navUnexpected=[];
       for(const role of ['customer','supplier','admin']){app.__navBefore[role]=wx.getStorageSync('ktv-session-'+role+'-v1');wx.setStorageSync('ktv-session-'+role+'-v1',{role,token:'nav-'+role})}
       api.request=async(url,options={})=>{
+        if(url==='/site-settings')return {staffPortalEnabled:true};
         const role=(options.token||'').includes('admin')?'admin':(options.token||'').includes('supplier')?'supplier':'customer';
         if(url==='/session')return {ok:true};
         if(url==='/sessions/wechat')return {role:'customer',token:'nav-customer'};

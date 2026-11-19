@@ -18,6 +18,7 @@ const snapshot = role => ({ role, subject: role === 'admin' ? 'pc-1' : role === 
       const role = auth === 'Bearer fixture-pc' ? 'admin' : opaque === 'fixture-supplier' ? 'supplier' : 'customer';
       if (auth) { assert.equal(opaque, null); pcBearerSeen = true; }
       const respond = json => route.fulfill({ json });
+      if (p === '/site-settings') return respond({ staffPortalEnabled: true });
       if (p === '/sessions/customer') return respond({ role: 'customer', token: 'fixture-customer', recovery: 'fixture-recovery' });
       if (p === '/sessions/pc-admin') { assert.equal(request.postDataJSON().username, 'admin'); return respond({ role: 'admin', token: 'pc.fixture-pc' }); }
       if (p === '/sessions/staff') return respond({ role: 'supplier', token: 'fixture-supplier' });

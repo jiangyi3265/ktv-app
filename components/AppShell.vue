@@ -74,19 +74,19 @@
 					<AppIcon name="chevron-left" :size="20" /><text>{{ navigation.label }}</text>
 				</button>
 				<view class="topbar-title"
-					><text>{{ orderingClosed ? '门店服务' : title }}</text
+					><text>{{ pageClosed ? '门店服务' : title }}</text
 					><text v-if="subtitle" class="topbar-subtitle">{{
 						subtitle
 					}}</text></view
 				>
 				<view
-					v-if="!orderingClosed && (DESIGN_MODE || connection.ready)"
+					v-if="!pageClosed && (DESIGN_MODE || connection.ready)"
 					class="topbar-action"
 					><slot name="header-action"
 				/></view>
 				<button
 					v-if="
-						!DESIGN_MODE && connection.ready && role !== 'customer'
+						!pageClosed && !DESIGN_MODE && connection.ready && role !== 'customer'
 					"
 					class="session-exit"
 					@click="signOut"
@@ -94,8 +94,12 @@
 					退出账号
 				</button>
 			</view>
-			<ConnectionGate
-				v-if="!DESIGN_MODE && !connection.ready && !publicPage"
+			<view v-if="staffPage && !DESIGN_MODE && !siteSettings.ready" class="connection-gate">
+                <text>{{ siteSettings.error || '正在连接门店服务…' }}</text>
+                <button v-if="siteSettings.error" class="primary-button" @click="prepareRole">重试</button>
+            </view>
+            <ConnectionGate
+				v-if="!pageClosed && !DESIGN_MODE && !connection.ready && !publicPage"
 				:role="role"
 			/>
 			<view
@@ -105,7 +109,7 @@
 				><button @click="retry">重试</button></view
 			>
 			<scroll-view
-				v-if="!orderingClosed && (DESIGN_MODE || connection.ready || publicPage)"
+				v-if="!pageClosed && (DESIGN_MODE || connection.ready || publicPage)"
 				scroll-y
 				:show-scrollbar="false"
 				class="page-scroll"
@@ -115,7 +119,7 @@
 			/></scroll-view>
 
 			<view
-				v-if="!orderingClosed && $slots.footer && (DESIGN_MODE || connection.ready)"
+				v-if="!pageClosed && $slots.footer && (DESIGN_MODE || connection.ready)"
 				class="page-footer"
 				><slot name="footer"
 			/></view>
@@ -141,12 +145,12 @@
 			<!-- #ifndef H5 -->
 			<view
 				v-if="
-						!orderingClosed && !tabs && $slots.footer && (DESIGN_MODE || connection.ready)
+						!pageClosed && !tabs && $slots.footer && (DESIGN_MODE || connection.ready)
 				"
 				:style="{ height: safeBottom + 'px', flexShrink: 0 }"
 			/>
 			<!-- #endif -->
-			<slot v-if="!orderingClosed && (DESIGN_MODE || connection.ready)" name="overlay" />
+			<slot v-if="!pageClosed && (DESIGN_MODE || connection.ready)" name="overlay" />
 		</view>
 		<!-- #ifdef H5 -->
 		<view class="review-current"
@@ -160,6 +164,7 @@
 import { computed, watch, ref, nextTick, onMounted, onUnmounted } from "vue";
 import { onShow, onHide } from "@dcloudio/uni-app";
 import ConnectionGate from "./ConnectionGate.vue";
+import { siteSettings, refreshSiteSettings } from "../common/site-settings";
 import {
 	DESIGN_MODE,
 	connection,
@@ -228,42 +233,57 @@ const role = computed(
 				? "supplier"
 				: "admin"),
 );
-const orderingClosed = computed(() => !DESIGN_MODE && role.value === "customer" &&
-	["01", "02", "03", "04"].includes(props.page) && !connection.orderingEnabled);
+const staffPage = computed(() => role.value !== "customer");
+const pageClosed = computed(() => !DESIGN_MODE && (staffPage.value
+    ? !siteSettings.ready || !siteSettings.staffPortalEnabled
+    : ["01", "02", "03", "04"].includes(props.page) && !connection.orderingEnabled));
+async function prepareRole() {
+    if (DESIGN_MODE) return;
+    const expectedRole = role.value;
+    await refreshSiteSettings();
+    if (role.value !== expectedRole) return;
+    const current = getCurrentPages().slice(-1)[0];
+    if (current?.route !== designPages.find(item => item.id === props.page)?.path) return;
+    if (!staffPage.value || (siteSettings.ready && siteSettings.staffPortalEnabled)) activate(expectedRole);
+    nextTick(redirectClosedOrdering);
+}
 const navigation = computed(() => returnNavigation(props.page,
 	DESIGN_MODE || (connection.ready && connection.orderingEnabled)));
 watch(
 	role,
 	(value) => {
-		if (!DESIGN_MODE) activate(value);
+		if (!DESIGN_MODE) prepareRole();
 	},
 	{ immediate: true },
 );
 const pageVisible = ref(false);
 let redirecting = false;
 function redirectClosedOrdering() {
-	if (!pageVisible.value || !orderingClosed.value || !connection.ready ||
-		connection.role !== "customer" || redirecting) return;
+	if (!pageVisible.value || !pageClosed.value || redirecting) return;
+    if (staffPage.value ? !siteSettings.ready : (!connection.ready || connection.role !== "customer")) return;
 	// Kept-alive pages must never redirect a different foreground page.
 	const current = getCurrentPages().slice(-1)[0];
 	if (current?.route !== designPages.find(item => item.id === props.page)?.path) return;
 	redirecting = true;
 	uni.redirectTo({ url: "/pages/service/index", complete: () => { redirecting = false; } });
 }
-watch(() => [orderingClosed.value, connection.ready, connection.role], redirectClosedOrdering, { flush: "post" });
+watch(() => [pageClosed.value, siteSettings.ready, siteSettings.staffPortalEnabled, connection.ready, connection.role], redirectClosedOrdering, { flush: "post" });
 onShow(() => {
 	pageVisible.value = true;
 	if (!DESIGN_MODE) {
-		activate(role.value);
+		prepareRole();
 		nextTick(redirectClosedOrdering);
 	}
 });
 // H5 registers the parent page after child mount; wait for that registration.
-onMounted(() => { pageVisible.value = true; nextTick(redirectClosedOrdering); });
+onMounted(() => { pageVisible.value = true; prepareRole(); nextTick(redirectClosedOrdering); });
 onHide(() => { pageVisible.value = false; });
-const showTabs = computed(() => props.tabs && (props.tabs !== "customer" || DESIGN_MODE || connection.orderingEnabled));
-const visiblePages = computed(() => DESIGN_MODE || connection.orderingEnabled
-	? designPages : designPages.filter(item => Number(item.id) > 4));
+const showTabs = computed(() => !pageClosed.value && props.tabs && (props.tabs !== "customer" || DESIGN_MODE || connection.orderingEnabled));
+const visiblePages = computed(() => DESIGN_MODE ? designPages : designPages.filter(item =>
+    (connection.orderingEnabled || Number(item.id) > 4) &&
+    (siteSettings.staffPortalEnabled || Number(item.id) <= 8 || item.id === "24")));
+const settingsTimer = setInterval(() => { if (pageVisible.value && !DESIGN_MODE) refreshSiteSettings(); }, 10000);
+onUnmounted(() => clearInterval(settingsTimer));
 async function signOut() {
 	try {
 		await logout();

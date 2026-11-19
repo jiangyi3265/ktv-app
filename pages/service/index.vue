@@ -2,15 +2,15 @@
   <AppShell page="24" title="门店服务" account-role="customer" public-page>
     <view class="service-home">
       <text class="service-heading">欢迎来到门店</text>
-      <text class="service-intro">{{ canOrder ? '扫描包厢码点餐，查看订单，或进入工作人员工作台。' : '查看已有订单，或进入工作人员工作台。' }}</text>
+      <text class="service-intro">{{ canOrder ? '扫描包厢码点餐，或查看已有订单。' : (siteSettings.staffPortalEnabled ? '查看已有订单，或进入工作人员工作台。' : '查看已有订单进度与退款记录。') }}</text>
       <button v-if="canOrder" class="primary-button service-order" @click="go('01', {}, { replace: true })">进入点餐</button>
       <button class="service-orders" @click="go('06')">
         <AppIcon name="receipt" :size="30" color="orange" />
         <view class="service-copy"><text class="service-title">查看我的订单</text><text class="service-description">查看订单进度与退款记录</text></view>
         <AppIcon name="chevron-right" :size="20" color="orange" />
       </button>
-      <text class="service-staff-heading">工作人员入口</text>
-      <view class="service-staff">
+      <text v-if="siteSettings.staffPortalEnabled" class="service-staff-heading">工作人员入口</text>
+      <view v-if="siteSettings.staffPortalEnabled" class="service-staff">
         <button class="service-entry" @click="go('13')">
           <AppIcon name="home" :size="26" />
           <view class="service-copy"><text class="service-title">商家管理</text><text class="service-description">管理订单、账单与微信提醒</text></view>
@@ -22,7 +22,7 @@
           <AppIcon name="chevron-right" :size="20" />
         </button>
       </view>
-      <text class="service-footnote">工作人员请使用门店分配的账号登录。</text>
+      <text v-if="siteSettings.staffPortalEnabled" class="service-footnote">工作人员请使用门店分配的账号登录。</text>
     </view>
   </AppShell>
 </template>
@@ -32,6 +32,7 @@ import AppShell from '../../components/AppShell.vue';
 import AppIcon from '../../components/AppIcon.vue';
 import { connection } from '../../common/store';
 import { go } from '../../common/pages';
+import { siteSettings } from '../../common/site-settings';
 const canOrder = computed(() => connection.ready && connection.role === 'customer' && connection.orderingEnabled);
 </script>
 <style scoped>

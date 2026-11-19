@@ -33,6 +33,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       app.__orderingOriginal=api.request;app.__orderingBefore=wx.getStorageSync('ktv-session-customer-v1');app.__orderingEnabled=false;app.__orderingRevision=1;app.__orderingUnexpected=[];
       wx.removeStorageSync('ktv-session-customer-v1');
       api.request=async (url) => {
+        if(url==='/site-settings')return {staffPortalEnabled:true};
         if(url==='/sessions/wechat')return {role:'customer',token:'ordering-fixture-customer'};
         if(url==='/session')return {ok:true};
         if(url.startsWith('/state?'))return {role:'customer',subject:'wx-fixture',revision:app.__orderingRevision,page:1,orderingEnabled:app.__orderingEnabled,products:app.__orderingEnabled?[{id:'chicken',name:'宫保鸡丁饭',price:32,category:'主食',image:'chicken',description:'经典川味',onSale:true}]:[],orders:[],rooms:[],accounts:[],orderDetail:null,orderCounts:{},orderAlerts:[],hasMore:false};

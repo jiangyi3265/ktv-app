@@ -38,6 +38,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
       app.__noticeOriginal = api.request; app.__noticeCalls = []; app.__noticeState = {}; app.__noticeUnexpected = [];
       for (const role of ['customer', 'supplier', 'admin']) app.__noticeState[role] = { enabled: true, templateReady: true, templateId: role === 'customer' ? 'fixture-customer' : 'fixture-staff', bound: false, credits: 0 };
       api.request = (url, options = {}) => {
+        if(url === '/site-settings') return Promise.resolve({staffPortalEnabled:true});
         const role = (options.token || '').startsWith('pc.') ? 'admin' : (options.token || '').includes('supplier') ? 'supplier' : 'customer';
         app.__noticeCalls.push({ url, role, data: options.data });
         if (url === '/sessions/wechat') return Promise.resolve({ role: 'customer', token: 'fixture-customer' });

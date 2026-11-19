@@ -25,6 +25,7 @@ const snapshot = (role, query) => ({ role, subject: role === 'supplier' ? 'A01' 
       const navigate = id => page.locator('.review-link:visible').filter({ hasText: new RegExp('^' + id) }).click();
       await page.route('**/ktv-api/**', async route => {
         const url = new URL(route.request().url()), p = url.pathname.split('/ktv-api')[1];
+        if (p === '/site-settings') return route.fulfill({ json: { staffPortalEnabled: true } });
         const token = await route.request().headerValue('x-ktv-token') || '';
         const role = token.includes('supplier') ? 'supplier' : 'customer';
         if (p === '/sessions/customer') return route.fulfill({ json: { token: 'fixture-customer', recovery: 'fixture-recovery', role: 'customer' } });

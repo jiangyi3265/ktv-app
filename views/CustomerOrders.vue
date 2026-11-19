@@ -81,7 +81,7 @@
 		</view>
 		<view v-else-if="page === '06'" class="page-body orders-body">
 			<StaffNotifications v-if="!DESIGN_MODE" />
-			<view v-if="!DESIGN_MODE" class="staff-access"
+			<view v-if="!DESIGN_MODE && siteSettings.staffPortalEnabled" class="staff-access"
 				><button class="staff-entry text-button" @click="go('09')">
 					食堂登录
 				</button><button class="staff-entry text-button" @click="go('13')">商家管理</button></view
@@ -342,6 +342,7 @@
 	</AppShell>
 </template>
 <script setup>
+import { siteSettings } from "../common/site-settings";
 import { computed, ref, provide } from "vue";
 provide("artboard", 2);
 import AppShell from "../components/AppShell.vue";
