@@ -5,7 +5,7 @@ const output = process.env.KTV_TEST_OUTPUT || '.local/session-browser';
 const gate = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
 const item = { id: 'chicken', name: '测试餐品', image: 'chicken', price: 32, quantity: 1, onSale: true, category: '主食', description: '会话隔离检查' };
 const order = { id: '11', room: 'V01', status: 'pending', items: [item], paid: true, version: 2, time: '今天 12:00', events: [] };
-const snapshot = (role, query) => ({ role, subject: role === 'supplier' ? 'A01' : 'guest', revision: 1, page: 1,
+const snapshot = (role, query) => ({ role, subject: role === 'supplier' ? 'A01' : 'guest', revision: 1, page: 1, orderingEnabled: true,
   products: role === 'customer' ? [item] : [], orders: role === 'supplier' ? [order] : [],
   orderDetail: query.get('orderId') === '11' && role === 'supplier' ? order : null,
   accounts: role === 'supplier' ? [{ id: 'A01', name: '测试食堂', enabled: true, process: true, deliver: true }] : [],
@@ -55,7 +55,8 @@ const snapshot = (role, query) => ({ role, subject: role === 'supplier' ? 'A01' 
         if (name === 'login-role-isolation') holdLogin = true;
         await button('登录').click();
         if (name === 'login-role-isolation') {
-          await waitFor(() => held.length === 1); await navigate('01'); await screen().locator('.catalog-product').waitFor();
+          await waitFor(() => held.length === 1); await screen().locator('.return-button').click();
+          await screen().locator('.service-order').click(); await screen().locator('.catalog-product').waitFor();
           holdLogin = false; held[0].resolve(); await page.waitForTimeout(600);
           assert.equal(await screen().locator('.catalog-product').count(), 1, 'Late staff login replaced the active customer catalog');
         } else {
@@ -73,7 +74,8 @@ const snapshot = (role, query) => ({ role, subject: role === 'supplier' ? 'A01' 
               await page.waitForTimeout(150);
               assert.equal(await screen().locator('.connection-gate').count(), 1, 'Logout still exposed staff orders while waiting for the server');
             } else {
-              await navigate('01'); await screen().locator('.catalog-product').waitFor();
+              await screen().locator('.return-button').click();
+              await screen().locator('.service-order').click(); await screen().locator('.catalog-product').waitFor();
               holdLogout = false; held[0].resolve(); await page.waitForTimeout(500);
               assert.equal(await screen().locator('.catalog-product').count(), 1, 'Late logout switched the customer page to staff login');
             }
